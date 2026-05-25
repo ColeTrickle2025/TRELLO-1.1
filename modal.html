@@ -243,10 +243,14 @@ function renderForm(){
     html+='<div class="field'+(isFull?' full':'')+'"><label>'+f.label+(f.required?' <span style="color:#dc2626">*</span>':'')+'</label>';
 
     if(f.type==='text'||f.type==='tel'||f.type==='number'){
-      html+='<input id="f_'+f.id+'" type="'+(f.type==='number'?'number':'text')+'" placeholder="'+(f.ph||'')+'"'
+      var maxLen=f.id==='matricula'?'maxlength="10" ':'';
+      var onInput=f.upper
+        ?'oninput="this.value=this.value.toUpperCase();state.values[\''+f.id+'\']=this.value"'
+        :'oninput="state.values[\''+f.id+'\']=this.value"';
+      html+='<input id="f_'+f.id+'" type="'+(f.type==='number'?'number':'text')+'" '+maxLen+'placeholder="'+(f.ph||'')+'"'
         +(f.upper?' style="text-transform:uppercase;font-family:\'Courier New\',monospace;letter-spacing:0.05em"':'')
         +(f.mono&&!f.upper?' style="font-family:\'Courier New\',monospace;letter-spacing:0.06em"':'')
-        +' value="'+(state.values[f.id]||'')+'" oninput="state.values[\''+f.id+'\']=this.value">';
+        +' value="'+(state.values[f.id]||'')+'" '+onInput+'>';
     } else if(f.type==='textarea'){
       html+='<textarea id="f_'+f.id+'" rows="3" placeholder="'+(f.ph||'')+'" style="resize:vertical" oninput="state.values[\''+f.id+'\']=this.value">'+(state.values[f.id]||'')+'</textarea>';
     } else if(f.type==='select'){
@@ -285,11 +289,24 @@ function selectChanged(id,sub,val){
 }
 function setPriority(p){state.priority=p;renderForm();}
 
+function validarMatricula(m){
+  if(!m)return false;
+  m=m.toUpperCase().trim();
+  var actual=/^[0-9]{4}[BCDFGHJKLMNPRSTUVWXYZ]{3}$/.test(m);
+  var antiguo=/^[A-Z]{1,2}[0-9]{4}[A-Z]{1,2}$/.test(m);
+  var especial=/^[A-Z]{1,3}[0-9]{4,6}$/.test(m);
+  return actual||antiguo||especial;
+}
+
 function submitForm(){
   var tpl=state.tpl;
   var missing=tpl.fields.filter(function(f){return f.required&&!state.values[f.id];});
   if(missing.length){
     state.msg={type:'warn',text:'⚠️ Completa los campos obligatorios: '+missing.map(function(f){return f.label;}).join(', ')};
+    return render();
+  }
+  if(state.values['matricula']&&!validarMatricula(state.values['matricula'])){
+    state.msg={type:'warn',text:'⚠️ Matrícula no válida. Formatos: 1234BCD (actual) o AB1234CD (antiguo)'};
     return render();
   }
   state.saving=true;
