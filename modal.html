@@ -318,30 +318,31 @@ function submitForm(){
   state.apiKey=API_KEY;
   state.apiToken=API_TOKEN;
 
-  // Obtener board ID desde la URL de Trello y cargar listas directamente via API
-  t.board('id').then(function(board){
-    var boardId=board.id;
-    return fetch('https://api.trello.com/1/boards/'+boardId+'/lists?key='+API_KEY+'&token='+API_TOKEN+'&filter=open');
-  }).then(function(r){
+  // Usar getContext() (síncrono) para obtener el boardId
+  var ctx = t.getContext();
+  var boardId = ctx.board;
+
+  fetch('https://api.trello.com/1/boards/'+boardId+'/lists?key='+API_KEY+'&token='+API_TOKEN+'&filter=open')
+  .then(function(r){
     if(!r.ok)throw new Error('HTTP '+r.status);
     return r.json();
   }).then(function(lists){
     state.lists=lists||[];
     state.saving=false;
     if(!state.lists.length){
-      state.msg={type:'warn',text:'⚠️ No se encontraron listas en este tablero'};
+      state.msg={type:'warn',text:'⚠️ No se encontraron listas. Comprueba el API Key y Token.'};
       render();return;
     }
     var defaultList=state.lists.find(function(l){
       var n=l.name.toLowerCase();
-      return n.includes('pedido')||n.includes('solicitud')||n.includes('recepci')||n.includes('inbox')||n.includes('entrada')||n.includes('nueva');
+      return n.includes('pedido')||n.includes('solicitud')||n.includes('recepci')||n.includes('entrada')||n.includes('nueva');
     });
     state.selectedList=defaultList?defaultList.id:state.lists[0].id;
     state.step='list-pick';
     render();
   }).catch(function(err){
     state.saving=false;
-    state.msg={type:'warn',text:'❌ Error conectando con Trello: '+err.message};
+    state.msg={type:'warn',text:'❌ Error: '+err.message+'. Verifica que el API Key y Token son correctos.'};
     render();
   });
 }
