@@ -318,9 +318,8 @@ function submitForm(){
   state.apiKey=API_KEY;
   state.apiToken=API_TOKEN;
 
-  // Usar getContext() (síncrono) para obtener el boardId
-  var ctx = t.getContext();
-  var boardId = ctx.board;
+  // Board ID hardcodeado directamente (de la URL del tablero)
+  var boardId = 'QNEswrD1';
 
   fetch('https://api.trello.com/1/boards/'+boardId+'/lists?key='+API_KEY+'&token='+API_TOKEN+'&filter=open')
   .then(function(r){
