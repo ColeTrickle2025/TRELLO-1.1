@@ -313,18 +313,21 @@ function submitForm(){
   render();
 
   // Load credentials and lists
+  var HARDCODED_KEY='a94def1efe06824418ef1ebc9bd12b4c';
+  var HARDCODED_TOKEN='ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
+
   Promise.all([
     t.get('member','private','apiKey'),
     t.get('member','private','apiToken'),
     t.lists('open','all')
   ]).then(function(res){
-    state.apiKey=res[0]||'';
-    state.apiToken=res[1]||'';
+    state.apiKey=res[0]||HARDCODED_KEY;
+    state.apiToken=res[1]||HARDCODED_TOKEN;
     state.lists=res[2]||[];
     state.saving=false;
 
     if(!state.apiKey||!state.apiToken){
-      state.msg={type:'warn',text:'⚠️ Configura el API Key y Token primero en la ⚙️ Configuración del Power-Up'};
+      state.msg={type:'warn',text:'⚠️ Configura el API Key y Token en ⚙️ Configurar API'};
       render();return;
     }
     if(!state.lists.length){
