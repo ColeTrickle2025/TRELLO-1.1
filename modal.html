@@ -95,7 +95,20 @@ var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwyiZu108CpuTyqPyLtjYJ
 var params=new URLSearchParams(window.location.search);
 var MODE=params.get('mode')||'new-request';
 
-var BRANDS=['Peugeot','Citroën','Opel','Fiat','Alfa Romeo','DS Automobiles','Abarth','Jeep','Maserati','Otro'];
+var BRANDS=['Peugeot','Citroën','Opel','Fiat','Alfa Romeo','Lancia','DS Automobiles','Abarth','Jeep','Maserati','Otro'];
+var BRAND_ICONS={
+  'Peugeot':       '🦁',
+  'Citroën':       '⬡',
+  'Opel':          '⚡',
+  'Fiat':          '🔵',
+  'Alfa Romeo':    '🔴',
+  'Lancia':        '🏹',
+  'DS Automobiles':'💎',
+  'Abarth':        '🦂',
+  'Jeep':          '🟩',
+  'Maserati':      '🔱',
+  'Otro':          '🚗',
+};
 var MODELOS={
   'Peugeot':['208','308','408','508','2008','3008','5008','Partner','Boxer'],
   'Citroën':['C3','C4','C5X','C3 Aircross','Berlingo','Spacetourer'],
@@ -157,16 +170,15 @@ var TEMPLATES={
     desc:'Piezas, repuestos y material diverso',
     listName:'Solicitudes Generales',
     fields:[
-      {id:'referencia',   label:'Referencia / Código pieza', type:'text', required:true, ph:'1234.AB', mono:true, upper:true},
-      {id:'descripcion',  label:'Descripción de la pieza',   type:'textarea',required:true, ph:'Descripción detallada del artículo a pedir...'},
-      {id:'cantidad',     label:'Cantidad',                   type:'number',required:true, ph:'1'},
-      {id:'matricula',    label:'Matrícula del vehículo',     type:'text', required:false, ph:'1234ABC (si aplica)', upper:true},
-      {id:'proveedor',    label:'Proveedor preferido',        type:'select',required:false,
-        opts:['Sin preferencia','Stellantis Original','Distribuidor habitual','Cualquier proveedor']},
-      {id:'solicitado_por',label:'Solicitado por',            type:'text', required:false, ph:'Nombre del recepcionista'},
-      {id:'fecha_cita',   label:'Fecha de cita',              type:'fecha_cita', required:true},
-      {id:'prioridad',    label:'Prioridad',                  type:'priority'},
-      {id:'notas',        label:'Notas / Observaciones',      type:'textarea', ph:'Detalles adicionales, urgencias...'},
+      {id:'matricula',   label:'Matrícula',            type:'text',   required:true,  ph:'1234ABC', upper:true},
+      {id:'cliente',     label:'Cliente',              type:'text',   required:true,  ph:'Nombre completo'},
+      {id:'telefono',    label:'Teléfono',             type:'tel',    required:false, ph:'6XX XXX XXX'},
+      {id:'marca',       label:'Marca',                type:'select', required:false, opts:BRANDS, sub:'modelo'},
+      {id:'modelo',      label:'Modelo',               type:'select', required:false, opts:[]},
+      {id:'que_necesita',label:'¿Qué necesita?',       type:'textarea',required:true,  ph:'Describe qué pieza o trabajo necesita el cliente...'},
+      {id:'fecha_cita',  label:'Fecha de cita',        type:'fecha_cita', required:true},
+      {id:'prioridad',   label:'Prioridad',            type:'priority'},
+      {id:'notas',       label:'Notas / Observaciones',type:'textarea',required:false, ph:'Referencia si la conoce, observaciones adicionales...'},
     ]
   }
 };
@@ -421,25 +433,28 @@ function createCard(){
   .then(function(member){
     var pedidoPor=(member.fullName||'DESCONOCIDO').toUpperCase();
 
-    // Construir título en MAYÚSCULAS
+    // Construir título en MAYÚSCULAS con icono de marca
+    var brandIco=BRAND_ICONS[v.marca]||'🚗';
     var titleParts=[];
     if(tpl.id==='airbag'){
-      titleParts.push('AIRBAG');
+      titleParts.push('🛡️ AIRBAG');
       titleParts.push(v.matricula||'?');
+      titleParts.push(brandIco+' '+(v.marca||'').toUpperCase()+(v.modelo?' '+v.modelo.toUpperCase():''));
       titleParts.push((v.cliente||'?').toUpperCase());
     }
     if(tpl.id==='neumaticos'){
-      titleParts.push('NEUMÁTICOS');
+      titleParts.push('🔄 NEUMÁTICOS');
       titleParts.push(v.matricula||'?');
-      titleParts.push((v.medida||'?').toUpperCase());
+      titleParts.push(brandIco+' '+(v.marca||'').toUpperCase()+(v.modelo?' '+v.modelo.toUpperCase():''));
       titleParts.push((v.cliente||'?').toUpperCase());
     }
     if(tpl.id==='general'){
-      titleParts.push('PEDIDO');
-      titleParts.push(v.referencia||'?');
-      titleParts.push((v.descripcion||'?').substring(0,30).toUpperCase());
+      titleParts.push('📦 PEDIDO');
+      titleParts.push(v.matricula||'?');
+      titleParts.push(brandIco+' '+(v.marca||'').toUpperCase()+(v.modelo?' '+v.modelo.toUpperCase():''));
+      titleParts.push((v.cliente||'?').toUpperCase());
     }
-    titleParts.push('PEDIDO POR '+pedidoPor);
+    titleParts.push('· '+pedidoPor);
     var title=titleParts.join(' - ');
 
     // Descripción también en mayúsculas donde aplique
@@ -527,6 +542,8 @@ function createCard(){
 }
 
 function buildDesc(tpl,v,pedidoPor){
+  var brandIco=BRAND_ICONS[v.marca]||'🚗';
+  var vehiculo=v.marca?(brandIco+' '+(v.marca).toUpperCase()+(v.modelo?' '+v.modelo.toUpperCase():'')):null;
   var lines=['## '+tpl.ico+' '+tpl.name.toUpperCase(),''];
   pedidoPor=pedidoPor||'';
   var labels={
@@ -535,10 +552,13 @@ function buildDesc(tpl,v,pedidoPor){
     tipo_airbag:'💥 Tipo airbag',medida:'📏 Medida',cantidad:'🔢 Cantidad',
     tipo:'❄️ Tipo',marca_neum:'🏷 Marca',con_llanta:'🛞 Con llanta',
     referencia:'#️⃣ Referencia',descripcion:'📝 Descripción',
-    proveedor:'🏪 Proveedor',solicitado_por:'👤 Solicitado por',notas:'📋 Notas'
+    que_necesita:'🔧 Qué necesita',proveedor:'🏪 Proveedor',solicitado_por:'👤 Solicitado por',notas:'📋 Notas'
   };
+  // Añadir vehículo con icono de marca al principio
+  if(vehiculo)lines.push(vehiculo);
   tpl.fields.forEach(function(f){
     if(f.type==='priority')return;
+    if(f.id==='marca'||f.id==='modelo')return; // ya lo mostramos arriba
     var val=v[f.id]||(f.type==='select'?f.opts&&f.opts[0]:null);
     if(!val)return;
     lines.push((labels[f.id]||f.label)+': **'+val+'**');
