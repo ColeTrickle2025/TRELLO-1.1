@@ -329,19 +329,19 @@ function submitForm(){
     state.lists=lists||[];
     state.saving=false;
     if(!state.lists.length){
-      state.msg={type:'warn',text:'⚠️ No se encontraron listas. Comprueba el API Key y Token.'};
+      state.msg={type:'warn',text:'⚠️ No se encontraron listas en el tablero.'};
       render();return;
     }
+    // Por defecto seleccionar PEDIDOS (primera lista)
     var defaultList=state.lists.find(function(l){
-      var n=l.name.toLowerCase();
-      return n.includes('pedido')||n.includes('solicitud')||n.includes('recepci')||n.includes('entrada')||n.includes('nueva');
+      return l.id==='68a4531b010b18274c39d3a8'; // PEDIDOS
     });
     state.selectedList=defaultList?defaultList.id:state.lists[0].id;
     state.step='list-pick';
     render();
   }).catch(function(err){
     state.saving=false;
-    state.msg={type:'warn',text:'❌ Error: '+err.message+'. Verifica que el API Key y Token son correctos.'};
+    state.msg={type:'warn',text:'❌ Error conectando con Trello: '+err.message};
     render();
   });
 }
