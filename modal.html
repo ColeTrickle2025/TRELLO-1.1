@@ -374,27 +374,47 @@ function createCard(){
 
   var tpl=state.tpl;
   var v=state.values;
+  var API_KEY='a94def1efe06824418ef1ebc9bd12b4c';
+  var API_TOKEN='ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
 
-  // Build card title
-  var titleParts=[tpl.ico];
-  if(tpl.id==='airbag')     titleParts.push('Airbag ·',(v.matricula||'?'),'·',(v.cliente||'?'));
-  if(tpl.id==='neumaticos') titleParts.push('Neumáticos ·',(v.matricula||'?'),'·',(v.medida||'?'));
-  if(tpl.id==='general')    titleParts.push('Pedido ·',(v.referencia||'?'),'·',(v.descripcion||'?').substring(0,30));
-  var title=titleParts.join(' ');
+  // Obtener nombre del usuario Trello que está creando la tarjeta
+  fetch('https://api.trello.com/1/members/me?key='+API_KEY+'&token='+API_TOKEN+'&fields=fullName')
+  .then(function(r){return r.json();})
+  .then(function(member){
+    var pedidoPor=(member.fullName||'DESCONOCIDO').toUpperCase();
 
-  // Build description
-  var desc=buildDesc(tpl,v);
-  // Add priority label
-  var labelColor=state.priority==='muy-urgente'?'red':state.priority==='urgente'?'yellow':'green';
+    // Construir título en MAYÚSCULAS
+    var titleParts=[];
+    if(tpl.id==='airbag'){
+      titleParts.push('AIRBAG');
+      titleParts.push(v.matricula||'?');
+      titleParts.push((v.cliente||'?').toUpperCase());
+    }
+    if(tpl.id==='neumaticos'){
+      titleParts.push('NEUMÁTICOS');
+      titleParts.push(v.matricula||'?');
+      titleParts.push((v.medida||'?').toUpperCase());
+      titleParts.push((v.cliente||'?').toUpperCase());
+    }
+    if(tpl.id==='general'){
+      titleParts.push('PEDIDO');
+      titleParts.push(v.referencia||'?');
+      titleParts.push((v.descripcion||'?').substring(0,30).toUpperCase());
+    }
+    titleParts.push('PEDIDO POR '+pedidoPor);
+    var title=titleParts.join(' - ');
 
-  var payload={
-    name: title,
-    desc: desc,
-    idList: state.selectedList,
-    pos: 'top'
-  };
+    // Descripción también en mayúsculas donde aplique
+    var desc=buildDesc(tpl,v,pedidoPor);
 
-  fetch('https://api.trello.com/1/cards?key='+encodeURIComponent(state.apiKey)+'&token='+encodeURIComponent(state.apiToken),{
+    var payload={
+      name: title,
+      desc: desc,
+      idList: state.selectedList,
+      pos: 'top'
+    };
+
+    return fetch('https://api.trello.com/1/cards?key='+encodeURIComponent(API_KEY)+'&token='+encodeURIComponent(API_TOKEN),{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify(payload)
@@ -430,14 +450,20 @@ function createCard(){
   })
   .catch(function(err){
     state.saving=false;
-    state.msg={type:'warn',text:'❌ Error al crear la tarjeta: '+err.message+'. Revisa API Key y Token en Configuración.'};
+    state.msg={type:'warn',text:'❌ Error al crear la tarjeta: '+err.message};
     state.step='list-pick';
+    render();
+  });
+  }).catch(function(err){
+    state.saving=false;
+    state.msg={type:'warn',text:'❌ Error obteniendo usuario: '+err.message};
     render();
   });
 }
 
-function buildDesc(tpl,v){
-  var lines=['## '+tpl.ico+' '+tpl.name,''];
+function buildDesc(tpl,v,pedidoPor){
+  var lines=['## '+tpl.ico+' '+tpl.name.toUpperCase(),''];
+  pedidoPor=pedidoPor||'';
   var labels={
     matricula:'🚗 Matrícula',cliente:'👤 Cliente',telefono:'📞 Teléfono',
     marca:'🏷 Marca',modelo:'🚙 Modelo',vin:'🔑 VIN/Bastidor',
@@ -454,6 +480,7 @@ function buildDesc(tpl,v){
   });
   var pmap={normal:'🟢 Normal',urgente:'⚠️ Urgente','muy-urgente':'🔴 MUY URGENTE'};
   lines.push('','⚡ Prioridad: **'+(pmap[state.priority]||state.priority)+'**');
+  if(pedidoPor)lines.push('👤 Pedido por: **'+pedidoPor+'**');
   lines.push('','---','*Generado con Stellantis Recambios Power-Up*');
   return lines.join('\n');
 }
