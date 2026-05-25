@@ -313,34 +313,35 @@ function submitForm(){
   render();
 
   // Load credentials and lists
-  var HARDCODED_KEY='a94def1efe06824418ef1ebc9bd12b4c';
-  var HARDCODED_TOKEN='ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
+  var API_KEY='a94def1efe06824418ef1ebc9bd12b4c';
+  var API_TOKEN='ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
+  state.apiKey=API_KEY;
+  state.apiToken=API_TOKEN;
 
-  Promise.all([
-    t.get('member','private','apiKey'),
-    t.get('member','private','apiToken'),
-    t.lists('open','all')
-  ]).then(function(res){
-    state.apiKey=res[0]||HARDCODED_KEY;
-    state.apiToken=res[1]||HARDCODED_TOKEN;
-    state.lists=res[2]||[];
+  // Obtener board ID desde la URL de Trello y cargar listas directamente via API
+  t.board('id').then(function(board){
+    var boardId=board.id;
+    return fetch('https://api.trello.com/1/boards/'+boardId+'/lists?key='+API_KEY+'&token='+API_TOKEN+'&filter=open');
+  }).then(function(r){
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(function(lists){
+    state.lists=lists||[];
     state.saving=false;
-
-    if(!state.apiKey||!state.apiToken){
-      state.msg={type:'warn',text:'⚠️ Configura el API Key y Token en ⚙️ Configurar API'};
-      render();return;
-    }
     if(!state.lists.length){
       state.msg={type:'warn',text:'⚠️ No se encontraron listas en este tablero'};
       render();return;
     }
-    // Auto-select list by name
     var defaultList=state.lists.find(function(l){
       var n=l.name.toLowerCase();
-      return n.includes('pedido')||n.includes('solicitud')||n.includes('recepci')||n.includes('inbox')||n.includes('entrada');
+      return n.includes('pedido')||n.includes('solicitud')||n.includes('recepci')||n.includes('inbox')||n.includes('entrada')||n.includes('nueva');
     });
     state.selectedList=defaultList?defaultList.id:state.lists[0].id;
     state.step='list-pick';
+    render();
+  }).catch(function(err){
+    state.saving=false;
+    state.msg={type:'warn',text:'❌ Error conectando con Trello: '+err.message};
     render();
   });
 }
