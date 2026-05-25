@@ -6,12 +6,6 @@
 </head>
 <body>
 <script>
-/* ─────────────────────────────────────────────────────────────────────────
-   STELLANTIS RECAMBIOS — Power-Up para Trello
-   Versión 1.0  |  Uso interno concesionario
-   Hosting gratuito recomendado: GitHub Pages
-───────────────────────────────────────────────────────────────────────── */
-
 var ICON_URL = 'https://cdn.jsdelivr.net/npm/twemoji@14/assets/72x72/1f527.png';
 
 var BASE_URL = (function(){
@@ -21,23 +15,37 @@ var BASE_URL = (function(){
 
 TrelloPowerUp.initialize({
 
-  /* ── Botón en la cabecera del tablero ────────────────────────────── */
+  /* ── Dos botones en la cabecera: Nueva Solicitud + ⚙️ Config ── */
   'board-buttons': function(t) {
-    return [{
-      icon:  { dark: ICON_URL, light: ICON_URL },
-      text:  '📋 Nueva Solicitud',
-      callback: function(t) {
-        return t.modal({
-          url:    BASE_URL + 'modal.html?mode=new-request',
-          title:  'Nueva Solicitud de Recambios',
-          height: 620,
-          fullscreen: false
-        });
+    return [
+      {
+        icon: { dark: ICON_URL, light: ICON_URL },
+        text: '📋 Nueva Solicitud',
+        callback: function(t) {
+          return t.modal({
+            url:    BASE_URL + 'modal.html?mode=new-request',
+            title:  'Nueva Solicitud de Recambios',
+            height: 620,
+            fullscreen: false
+          });
+        }
+      },
+      {
+        icon: { dark: ICON_URL, light: ICON_URL },
+        text: '⚙️ Configurar API',
+        callback: function(t) {
+          return t.modal({
+            url:    BASE_URL + 'modal.html?mode=settings',
+            title:  'Configuración · API Key y Token',
+            height: 440,
+            fullscreen: false
+          });
+        }
       }
-    }];
+    ];
   },
 
-  /* ── Botón en el reverso de cada tarjeta ─────────────────────────── */
+  /* ── Botón en el reverso de cada tarjeta ── */
   'card-buttons': function(t) {
     return [{
       icon: ICON_URL,
@@ -52,7 +60,7 @@ TrelloPowerUp.initialize({
     }];
   },
 
-  /* ── Sección resumen en el reverso ───────────────────────────────── */
+  /* ── Sección resumen en el reverso de la tarjeta ── */
   'card-back-section': function(t) {
     return {
       title: '🔧 Datos del Pedido',
@@ -65,17 +73,18 @@ TrelloPowerUp.initialize({
     };
   },
 
-  /* ── Pantalla de configuración del Power-Up ──────────────────────── */
+  /* ── Settings (por si funciona desde el menú) ── */
   'show-settings': function(t) {
-    return t.popup({
-      title: 'Configuración',
-      url:   BASE_URL + 'modal.html?mode=settings',
-      height: 440
+    return t.modal({
+      url:    BASE_URL + 'modal.html?mode=settings',
+      title:  'Configuración · API Key y Token',
+      height: 440,
+      fullscreen: false
     });
   }
 
 }, {
-  appName:  'Stellantis Recambios'
+  appName: 'Stellantis Recambios'
 });
 </script>
 </body>
