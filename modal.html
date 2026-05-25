@@ -237,9 +237,18 @@ function renderPick(){
 
 function pickTemplate(id){
   state.tpl=TEMPLATES[id];
-  state.values={};
   state.priority='normal';
   state.marca=BRANDS[0];
+  state.sin_cita=false;
+  // Pre-inicializar selects con su valor por defecto para que salgan en el título
+  var defaults={};
+  TEMPLATES[id].fields.forEach(function(f){
+    if(f.type==='select'){
+      var opts=f.id==='modelo'?(MODELOS[BRANDS[0]]||['Otro']):f.opts;
+      if(opts&&opts.length) defaults[f.id]=opts[0];
+    }
+  });
+  state.values=defaults;
   state.step='form';
   render();
 }
@@ -321,7 +330,13 @@ function renderForm(){
 
 function selectChanged(id,sub,val){
   state.values[id]=val;
-  if(id==='marca'){state.marca=val;if($('f_modelo'))renderForm();}
+  if(id==='marca'){
+    state.marca=val;
+    // Reset modelo al primer valor de la nueva marca
+    var newModelos=MODELOS[val]||['Otro modelo'];
+    state.values['modelo']=newModelos[0];
+    renderForm();
+  }
 }
 function setPriority(p){state.priority=p;renderForm();}
 
@@ -344,7 +359,10 @@ function validarMatricula(m){
 
 function submitForm(){
   var tpl=state.tpl;
-  var missing=tpl.fields.filter(function(f){return f.required&&!state.values[f.id];});
+  // Excluir fecha_cita del check genérico (tiene su propia validación abajo)
+  var missing=tpl.fields.filter(function(f){
+    return f.required && f.type!=='fecha_cita' && !state.values[f.id];
+  });
   if(missing.length){
     state.msg={type:'warn',text:'⚠️ Completa los campos obligatorios: '+missing.map(function(f){return f.label;}).join(', ')};
     return render();
@@ -454,7 +472,7 @@ function createCard(){
       titleParts.push(brandIco+' '+(v.marca||'').toUpperCase()+(v.modelo?' '+v.modelo.toUpperCase():''));
       titleParts.push((v.cliente||'?').toUpperCase());
     }
-    titleParts.push('· '+pedidoPor);
+    titleParts.push('PEDIDO POR '+pedidoPor);
     var title=titleParts.join(' - ');
 
     // Descripción también en mayúsculas donde aplique
