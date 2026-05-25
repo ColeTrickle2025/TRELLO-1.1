@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+</head>
+<body>
+<script>
+/* ─────────────────────────────────────────────────────────────────────────
+   STELLANTIS RECAMBIOS — Power-Up para Trello
+   Versión 1.0  |  Uso interno concesionario
+   Hosting gratuito recomendado: GitHub Pages
+───────────────────────────────────────────────────────────────────────── */
+
+var ICON_URL = 'https://cdn.jsdelivr.net/npm/twemoji@14/assets/72x72/1f527.png';
+
+var BASE_URL = (function(){
+  var s = window.location.href;
+  return s.substring(0, s.lastIndexOf('/') + 1);
+})();
+
+TrelloPowerUp.initialize({
+
+  /* ── Botón en la cabecera del tablero ────────────────────────────── */
+  'board-buttons': function(t) {
+    return [{
+      icon:  { dark: ICON_URL, light: ICON_URL },
+      text:  '📋 Nueva Solicitud',
+      callback: function(t) {
+        return t.modal({
+          url:    BASE_URL + 'modal.html?mode=new-request',
+          title:  'Nueva Solicitud de Recambios',
+          height: 620,
+          fullscreen: false
+        });
+      }
+    }];
+  },
+
+  /* ── Botón en el reverso de cada tarjeta ─────────────────────────── */
+  'card-buttons': function(t) {
+    return [{
+      icon: ICON_URL,
+      text: 'Ver / Editar Pedido',
+      callback: function(t) {
+        return t.modal({
+          url:   BASE_URL + 'modal.html?mode=card-detail',
+          title: 'Detalles del Pedido',
+          height: 560
+        });
+      }
+    }];
+  },
+
+  /* ── Sección resumen en el reverso ───────────────────────────────── */
+  'card-back-section': function(t) {
+    return {
+      title: '🔧 Datos del Pedido',
+      icon:  ICON_URL,
+      content: {
+        type:   'iframe',
+        url:    t.signUrl(BASE_URL + 'card-section.html'),
+        height: 230
+      }
+    };
+  },
+
+  /* ── Pantalla de configuración del Power-Up ──────────────────────── */
+  'show-settings': function(t) {
+    return t.popup({
+      title: 'Configuración',
+      url:   BASE_URL + 'modal.html?mode=settings',
+      height: 440
+    });
+  }
+
+}, {
+  appName:  'Stellantis Recambios'
+});
+</script>
+</body>
+</html>
