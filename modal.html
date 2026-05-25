@@ -88,6 +88,10 @@ label{display:block;font-size:11px;font-weight:700;color:var(--muted);
 <script>
 /* ── helpers ── */
 var t=window.TrelloPowerUp.iframe();
+
+// ── URL del Google Apps Script Web App ──────────────────────────────────
+// Después de desplegar el script, pega aquí la URL que te da Google
+var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwILDjqvzMGGhZuFN-Ie7oWGfgcATPqKmVNruQc3Qmn4v6j0cK65svCK-SwQk3O9NCy/exec';
 var params=new URLSearchParams(window.location.search);
 var MODE=params.get('mode')||'new-request';
 
@@ -421,7 +425,24 @@ function createCard(){
   })
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(card){
-    // Store structured data on the card
+    // Enviar a Google Sheets en tiempo real
+    if(WEBAPP_URL && WEBAPP_URL.indexOf('PEGA_')===-1){
+      var sheetPayload={
+        template:     tpl.id,
+        fields:       v,
+        priority:     state.priority,
+        pedidoPor:    pedidoPor,
+        trelloCardId: card.id,
+        listName:     (state.lists.find(function(l){return l.id===state.selectedList;})||{name:''}).name
+      };
+      fetch(WEBAPP_URL,{
+        method:'POST',
+        mode:'no-cors',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(sheetPayload)
+      }).catch(function(e){console.log('Sheets error:',e);});
+    }
+    // Guardar datos en la tarjeta Trello
     var cardData={
       template: tpl.id,
       fields: v,
