@@ -40,6 +40,7 @@ var HEADERS = [
   'Notas',
   'Trello Card ID',
   'Lista Trello',
+  'Fecha Cita',
   'Estado'
 ];
 
@@ -122,10 +123,11 @@ function appendRow(data) {
     (v.descripcion || '—').toUpperCase(),          // General
     prioMap[data.priority] || data.priority || '🟢 Normal',
     (data.pedidoPor || '—').toUpperCase(),
-    v.notas        || '—',
+    v.notas          || '—',
     data.trelloCardId || '—',
     (data.listName || '—').toUpperCase(),
-    'SIN PEDIR'    // Estado inicial siempre
+    data.sinCita ? 'SIN CITA' : (data.fechaCita ? data.fechaCita : '—'),
+    'SIN PEDIR'    // Estado inicial
   ];
 
   sheet.appendRow(row);

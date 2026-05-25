@@ -125,6 +125,7 @@ var TEMPLATES={
       {id:'vin',          label:'VIN / Bastidor',      type:'text',  required:false, ph:'17 caracteres', upper:true, mono:true},
       {id:'tipo_airbag',  label:'Tipo de airbag',      type:'select',required:false,
         opts:['Frontal conductor','Frontal pasajero','Lateral izquierdo','Lateral derecho','Cortina izquierda','Cortina derecha','Trasero conductor','Trasero pasajero']},
+      {id:'fecha_cita',   label:'Fecha de cita',       type:'fecha_cita', required:true},
       {id:'prioridad',    label:'Prioridad',           type:'priority'},
       {id:'notas',        label:'Notas / Observaciones', type:'textarea', ph:'Observaciones adicionales...'},
     ]
@@ -145,6 +146,7 @@ var TEMPLATES={
       {id:'marca_neum',   label:'Marca preferida',     type:'text',  required:false, ph:'Michelin, Continental, cualquiera...'},
       {id:'con_llanta',   label:'Incluye llanta',      type:'select',required:false,
         opts:['No, solo cubierta','Sí, con llanta de acero','Sí, con llanta de aluminio']},
+      {id:'fecha_cita',   label:'Fecha de cita',       type:'fecha_cita', required:true},
       {id:'prioridad',    label:'Prioridad',           type:'priority'},
       {id:'notas',        label:'Notas / Observaciones',type:'textarea', ph:'Equilibrado, fecha de montaje...'},
     ]
@@ -162,6 +164,7 @@ var TEMPLATES={
       {id:'proveedor',    label:'Proveedor preferido',        type:'select',required:false,
         opts:['Sin preferencia','Stellantis Original','Distribuidor habitual','Cualquier proveedor']},
       {id:'solicitado_por',label:'Solicitado por',            type:'text', required:false, ph:'Nombre del recepcionista'},
+      {id:'fecha_cita',   label:'Fecha de cita',              type:'fecha_cita', required:true},
       {id:'prioridad',    label:'Prioridad',                  type:'priority'},
       {id:'notas',        label:'Notas / Observaciones',      type:'textarea', ph:'Detalles adicionales, urgencias...'},
     ]
@@ -263,6 +266,23 @@ function renderForm(){
       if(!f.required)html+='<option value="">— Seleccionar —</option>';
       opts.forEach(function(o){html+='<option value="'+o+'"'+(state.values[f.id]===o||(!state.values[f.id]&&o===opts[0])?' selected':'')+'>'+o+'</option>';});
       html+='</select>';
+    } else if(f.type==='fecha_cita'){
+      var fcVal=state.values['fecha_cita']||'';
+      var sinCita=state.values['sin_cita']||false;
+      html+='<div style="display:flex;flex-direction:column;gap:8px">';
+      // Sin cita checkbox
+      html+='<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:#475569;text-transform:none;letter-spacing:0">';
+      html+='<input type="checkbox" id="chk_sin_cita"'+(sinCita?' checked':'')+' onchange="toggleSinCita(this.checked)" style="width:16px;height:16px;cursor:pointer;border-radius:4px;accent-color:#1d4ed8">';
+      html+='🚗 Vehículo sin cita asignada</label>';
+      // Date picker (hidden if sin cita)
+      html+='<input type="date" id="f_fecha_cita" value="'+fcVal+'"'+(sinCita?' style="display:none"':'')+' min="'+new Date().toISOString().split("T")[0]+'" oninput="state.values[\'fecha_cita\']=this.value" style="font-size:13px">';
+      if(!sinCita&&!fcVal){
+        html+='<div style="font-size:11px;color:#dc2626;font-weight:600">⚠️ Obligatorio: selecciona una fecha o marca "Sin cita"</div>';
+      }
+      if(sinCita){
+        html+='<div style="font-size:12px;background:#fef3c7;border:1.5px solid #fbbf24;border-radius:6px;padding:6px 10px;color:#92400e;font-weight:600">⚠️ Se creará en la lista SIN CITA del responsable asignado</div>';
+      }
+      html+='</div>';
     } else if(f.type==='priority'){
       var p=state.priority;
       html+='<div class="prio-wrap">';
@@ -293,6 +313,14 @@ function selectChanged(id,sub,val){
 }
 function setPriority(p){state.priority=p;renderForm();}
 
+function toggleSinCita(checked){
+  state.values['sin_cita']=checked;
+  if(checked){
+    state.values['fecha_cita']='';
+  }
+  renderForm();
+}
+
 function validarMatricula(m){
   if(!m)return false;
   m=m.toUpperCase().trim();
@@ -311,6 +339,12 @@ function submitForm(){
   }
   if(state.values['matricula']&&!validarMatricula(state.values['matricula'])){
     state.msg={type:'warn',text:'⚠️ Matrícula no válida. Formatos: 1234BCD (actual) o AB1234CD (antiguo)'};
+    return render();
+  }
+  // Validar fecha de cita obligatoria
+  var hasFechaCita=tpl.fields.some(function(f){return f.type==='fecha_cita';});
+  if(hasFechaCita&&!state.values['fecha_cita']&&!state.values['sin_cita']){
+    state.msg={type:'warn',text:'⚠️ Obligatorio: selecciona una fecha de cita o marca "Vehículo sin cita asignada"'};
     return render();
   }
   state.saving=true;
@@ -411,12 +445,20 @@ function createCard(){
     // Descripción también en mayúsculas donde aplique
     var desc=buildDesc(tpl,v,pedidoPor);
 
+    // Calcular fecha de vencimiento para Trello (due date)
+    var dueDate=null;
+    if(state.values['fecha_cita']&&!state.values['sin_cita']){
+      // Trello necesita ISO 8601 con hora — ponemos las 09:00 AM
+      dueDate=state.values['fecha_cita']+'T09:00:00.000Z';
+    }
+
     var payload={
       name: title,
       desc: desc,
       idList: state.selectedList,
       pos: 'top'
     };
+    if(dueDate) payload.due=dueDate;
 
     return fetch('https://api.trello.com/1/cards?key='+encodeURIComponent(API_KEY)+'&token='+encodeURIComponent(API_TOKEN),{
     method:'POST',
@@ -433,6 +475,8 @@ function createCard(){
         priority:     state.priority,
         pedidoPor:    pedidoPor,
         trelloCardId: card.id,
+        sinCita:      state.values['sin_cita']||false,
+        fechaCita:    state.values['fecha_cita']||'',
         listName:     (state.lists.find(function(l){return l.id===state.selectedList;})||{name:''}).name
       };
       fetch(WEBAPP_URL,{
