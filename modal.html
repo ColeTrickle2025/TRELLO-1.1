@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stellantis Recambios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://p.trellocdn.com/power-up.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',system-ui,sans-serif;background:#f8fafc;color:#0f172a;font-size:14px}
+:root{
+  --blue:#1d4ed8;--blue-l:#dbeafe;--navy:#0c1a35;
+  --green:#059669;--green-l:#d1fae5;
+  --amber:#d97706;--amber-l:#fef3c7;
+  --red:#dc2626;--red-l:#fee2e2;
+  --border:#e2e8f0;--muted:#64748b;--bg:#f8fafc
+}
+input,select,textarea{
+  font-family:inherit;border:1.5px solid var(--border);border-radius:7px;
+  padding:7px 11px;font-size:13px;color:#0f172a;background:white;
+  width:100%;outline:none;transition:border 0.15s
+}
+input:focus,select:focus,textarea:focus{border-color:var(--blue)}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+label{display:block;font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.field{margin-bottom:12px}
+.field.full{grid-column:1/-1}
+.btn{border-radius:7px;padding:8px 16px;font-size:13px;font-weight:700;
+  display:inline-flex;align-items:center;gap:6px;transition:all 0.15s}
+.btn-primary{background:var(--blue);color:white}
+.btn-primary:hover{background:#1e40af}
+.btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--border)}
+.btn-ghost:hover{background:var(--bg)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;
+  border-radius:99px;font-size:12px;font-weight:700;border:1.5px solid}
+.section-title{font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px}
+.alert{padding:10px 13px;border-radius:8px;font-size:13px;margin-bottom:12px}
+.alert-info{background:#eff6ff;border:1.5px solid #bfdbfe;color:#1e3a8a}
+.alert-warn{background:var(--amber-l);border:1.5px solid #fbbf24;color:#92400e}
+.alert-ok{background:var(--green-l);border:1.5px solid #6ee7b7;color:#065f46}
+/* ── Template picker ── */
+.tpl-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.tpl-card{background:white;border:2px solid var(--border);border-radius:12px;
+  padding:16px 14px;cursor:pointer;text-align:center;transition:all 0.18s}
+.tpl-card:hover,.tpl-card.sel{border-color:var(--blue);background:var(--blue-l)}
+.tpl-card .ico{font-size:28px;margin-bottom:8px}
+.tpl-card .name{font-size:13px;font-weight:700;color:#0f172a}
+.tpl-card .desc{font-size:11px;color:var(--muted);margin-top:3px}
+/* ── Form container ── */
+.form-wrap{background:white;border:1.5px solid var(--border);border-radius:12px;padding:16px}
+/* ── Footer ── */
+.footer{display:flex;gap:8px;justify-content:flex-end;padding-top:14px;
+  border-top:1.5px solid var(--border);margin-top:14px}
+/* ── List picker ── */
+.list-item{padding:8px 12px;border-radius:8px;cursor:pointer;
+  display:flex;align-items:center;gap:8px;transition:background 0.1s}
+.list-item:hover{background:var(--bg)}
+.list-item.sel{background:var(--blue-l);font-weight:700;color:var(--blue)}
+/* ── Priority ── */
+.prio-wrap{display:flex;gap:8px}
+.prio-btn{flex:1;padding:7px;border-radius:7px;border:1.5px solid var(--border);
+  font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s}
+.prio-btn.sel-normal{background:#d1fae5;border-color:#6ee7b7;color:#065f46}
+.prio-btn.sel-urgente{background:#fef3c7;border-color:#fbbf24;color:#92400e}
+.prio-btn.sel-muy-urgente{background:#fee2e2;border-color:#fca5a5;color:#991b1b}
+/* ── Settings ── */
+.settings-block{background:white;border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px}
+/* ── Card detail ── */
+.detail-row{display:flex;gap:6px;margin-bottom:8px;align-items:flex-start}
+.detail-label{font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.04em;min-width:110px;padding-top:2px}
+.detail-val{font-size:13px;color:#0f172a;font-weight:500}
+/* ── Misc ── */
+.tag{background:#ede9fe;color:#6d28d9;padding:3px 9px;border-radius:6px;
+  font-size:11px;font-weight:700;margin-right:4px}
+.scroll{overflow-y:auto;padding:16px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ── helpers ── */
+var t=window.TrelloPowerUp.iframe();
+var params=new URLSearchParams(window.location.search);
+var MODE=params.get('mode')||'new-request';
+
+var BRANDS=['Peugeot','Citroën','Opel','Fiat','Alfa Romeo','DS Automobiles','Abarth','Jeep','Maserati','Otro'];
+var MODELOS={
+  'Peugeot':['208','308','408','508','2008','3008','5008','Partner','Boxer'],
+  'Citroën':['C3','C4','C5X','C3 Aircross','Berlingo','Spacetourer'],
+  'Opel':['Corsa','Astra','Mokka','Crossland','Grandland','Zafira'],
+  'Fiat':['500','Panda','Tipo','Doblò','Ducato'],
+  'Alfa Romeo':['Giulia','Stelvio','Tonale','Giulietta'],
+  'DS Automobiles':['DS3','DS4','DS7','DS9'],
+  'Abarth':['500','595','695'],
+  'Jeep':['Renegade','Compass','Cherokee','Avenger'],
+  'Maserati':['Ghibli','Levante','Quattroporte','Grecale'],
+  'Otro':['Otro modelo']
+};
+
+/* ── templates definition ── */
+var TEMPLATES={
+  airbag:{
+    id:'airbag',ico:'🛡️',
+    name:'Airbag / Campaña',
+    desc:'Recall y campaña de airbags Stellantis',
+    listName:'Solicitudes Airbag',
+    fields:[
+      {id:'matricula',    label:'Matrícula',          type:'text',  required:true,  ph:'1234ABC', upper:true},
+      {id:'cliente',      label:'Cliente',             type:'text',  required:true,  ph:'Nombre completo'},
+      {id:'telefono',     label:'Teléfono',            type:'tel',   required:false, ph:'6XX XXX XXX'},
+      {id:'marca',        label:'Marca',               type:'select',required:false, opts:BRANDS, sub:'modelo'},
+      {id:'modelo',       label:'Modelo',              type:'select',required:false, opts:[]},
+      {id:'vin',          label:'VIN / Bastidor',      type:'text',  required:false, ph:'17 caracteres', upper:true, mono:true},
+      {id:'tipo_airbag',  label:'Tipo de airbag',      type:'select',required:false,
+        opts:['Frontal conductor','Frontal pasajero','Lateral izquierdo','Lateral derecho','Cortina izquierda','Cortina derecha','Trasero conductor','Trasero pasajero']},
+      {id:'prioridad',    label:'Prioridad',           type:'priority'},
+      {id:'notas',        label:'Notas / Observaciones', type:'textarea', ph:'Observaciones adicionales...'},
+    ]
+  },
+  neumaticos:{
+    id:'neumaticos',ico:'🔄',
+    name:'Neumáticos',
+    desc:'Pedido de neumáticos y llantas',
+    listName:'Solicitudes Neumáticos',
+    fields:[
+      {id:'matricula',    label:'Matrícula',           type:'text',  required:true,  ph:'1234ABC', upper:true},
+      {id:'cliente',      label:'Cliente',             type:'text',  required:true,  ph:'Nombre completo'},
+      {id:'telefono',     label:'Teléfono',            type:'tel',   required:false, ph:'6XX XXX XXX'},
+      {id:'medida',       label:'Medida del neumático',type:'text',  required:true,  ph:'195/65 R15', mono:true},
+      {id:'cantidad',     label:'Cantidad',            type:'number',required:true,  ph:'4'},
+      {id:'tipo',         label:'Tipo',                type:'select',required:true,
+        opts:['Verano','Invierno','All Season / 4 estaciones']},
+      {id:'marca_neum',   label:'Marca preferida',     type:'text',  required:false, ph:'Michelin, Continental, cualquiera...'},
+      {id:'con_llanta',   label:'Incluye llanta',      type:'select',required:false,
+        opts:['No, solo cubierta','Sí, con llanta de acero','Sí, con llanta de aluminio']},
+      {id:'prioridad',    label:'Prioridad',           type:'priority'},
+      {id:'notas',        label:'Notas / Observaciones',type:'textarea', ph:'Equilibrado, fecha de montaje...'},
+    ]
+  },
+  general:{
+    id:'general',ico:'📦',
+    name:'Pedido General',
+    desc:'Piezas, repuestos y material diverso',
+    listName:'Solicitudes Generales',
+    fields:[
+      {id:'referencia',   label:'Referencia / Código pieza', type:'text', required:true, ph:'1234.AB', mono:true, upper:true},
+      {id:'descripcion',  label:'Descripción de la pieza',   type:'textarea',required:true, ph:'Descripción detallada del artículo a pedir...'},
+      {id:'cantidad',     label:'Cantidad',                   type:'number',required:true, ph:'1'},
+      {id:'matricula',    label:'Matrícula del vehículo',     type:'text', required:false, ph:'1234ABC (si aplica)', upper:true},
+      {id:'proveedor',    label:'Proveedor preferido',        type:'select',required:false,
+        opts:['Sin preferencia','Stellantis Original','Distribuidor habitual','Cualquier proveedor']},
+      {id:'solicitado_por',label:'Solicitado por',            type:'text', required:false, ph:'Nombre del recepcionista'},
+      {id:'prioridad',    label:'Prioridad',                  type:'priority'},
+      {id:'notas',        label:'Notas / Observaciones',      type:'textarea', ph:'Detalles adicionales, urgencias...'},
+    ]
+  }
+};
+
+/* ── state ── */
+var state={
+  step:'pick',    // pick | form | list-pick
+  tpl:null,
+  values:{},
+  priority:'normal',
+  marca:'Peugeot',
+  lists:[],
+  selectedList:null,
+  apiKey:'',
+  apiToken:'',
+  msg:null,
+  saving:false
+};
+
+/* ── render ── */
+function $(id){return document.getElementById(id);}
+function app(){return document.getElementById('app');}
+
+function render(){
+  if(MODE==='settings')   return renderSettings();
+  if(MODE==='card-detail')return renderCardDetail();
+  renderNewRequest();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MODO: NUEVA SOLICITUD
+══════════════════════════════════════════════════════════════ */
+function renderNewRequest(){
+  if(state.step==='pick') return renderPick();
+  if(state.step==='form') return renderForm();
+  if(state.step==='list-pick') return renderListPick();
+}
+
+function renderPick(){
+  var html='<div class="scroll"><div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:17px;color:#0c1a35;margin-bottom:4px">Nueva Solicitud de Recambios</div>';
+  html+='<div style="font-size:12px;color:#64748b;margin-bottom:18px">Selecciona el tipo de pedido para cargar la plantilla correspondiente</div>';
+  html+='<div class="tpl-grid">';
+  Object.values(TEMPLATES).forEach(function(tpl){
+    html+='<div class="tpl-card" onclick="pickTemplate(\''+tpl.id+'\')">';
+    html+='<div class="ico">'+tpl.ico+'</div>';
+    html+='<div class="name">'+tpl.name+'</div>';
+    html+='<div class="desc">'+tpl.desc+'</div>';
+    html+='</div>';
+  });
+  html+='</div>';
+  html+='<div style="display:flex;justify-content:flex-end"><button class="btn btn-ghost btn-sm" onclick="t.closeModal()">Cancelar</button></div>';
+  html+='</div>';
+  app().innerHTML=html;
+  t.sizeTo('#app');
+}
+
+function pickTemplate(id){
+  state.tpl=TEMPLATES[id];
+  state.values={};
+  state.priority='normal';
+  state.marca=BRANDS[0];
+  state.step='form';
+  render();
+}
+
+function renderForm(){
+  var tpl=state.tpl;
+  var html='<div class="scroll">';
+  html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">';
+  html+='<div style="font-size:22px">'+tpl.ico+'</div>';
+  html+='<div><div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:16px">'+tpl.name+'</div>';
+  html+='<div style="font-size:11px;color:#64748b">'+tpl.desc+'</div></div>';
+  html+='<button class="btn btn-ghost btn-sm" onclick="state.step=\'pick\';render()" style="margin-left:auto">← Cambiar</button>';
+  html+='</div>';
+  html+='<div class="form-wrap"><div class="row">';
+
+  var fullRow=false;
+  tpl.fields.forEach(function(f,i){
+    var isFull=f.type==='textarea'||f.type==='priority'||f.id==='descripcion'||f.id==='vin'||f.id==='referencia';
+    if(isFull&&!fullRow){html+='</div><div class="row">';fullRow=false;}
+    html+='<div class="field'+(isFull?' full':'')+'"><label>'+f.label+(f.required?' <span style="color:#dc2626">*</span>':'')+'</label>';
+
+    if(f.type==='text'||f.type==='tel'||f.type==='number'){
+      html+='<input id="f_'+f.id+'" type="'+(f.type==='number'?'number':'text')+'" placeholder="'+(f.ph||'')+'"'
+        +(f.upper?' style="text-transform:uppercase;font-family:\'Courier New\',monospace;letter-spacing:0.05em"':'')
+        +(f.mono&&!f.upper?' style="font-family:\'Courier New\',monospace;letter-spacing:0.06em"':'')
+        +' value="'+(state.values[f.id]||'')+'" oninput="state.values[\''+f.id+'\']=this.value">';
+    } else if(f.type==='textarea'){
+      html+='<textarea id="f_'+f.id+'" rows="3" placeholder="'+(f.ph||'')+'" style="resize:vertical" oninput="state.values[\''+f.id+'\']=this.value">'+(state.values[f.id]||'')+'</textarea>';
+    } else if(f.type==='select'){
+      var opts=f.id==='modelo'?(MODELOS[state.marca]||['Otro']):f.opts;
+      html+='<select id="f_'+f.id+'" onchange="selectChanged(\''+f.id+'\',\''+f.sub+'\',this.value)">';
+      if(!f.required)html+='<option value="">— Seleccionar —</option>';
+      opts.forEach(function(o){html+='<option value="'+o+'"'+(state.values[f.id]===o||(!state.values[f.id]&&o===opts[0])?' selected':'')+'>'+o+'</option>';});
+      html+='</select>';
+    } else if(f.type==='priority'){
+      var p=state.priority;
+      html+='<div class="prio-wrap">';
+      html+='<button class="prio-btn'+(p==='normal'?' sel-normal':'')+'" onclick="setPriority(\'normal\')">✅ Normal</button>';
+      html+='<button class="prio-btn'+(p==='urgente'?' sel-urgente':'')+'" onclick="setPriority(\'urgente\')">⚠️ Urgente</button>';
+      html+='<button class="prio-btn'+(p==='muy-urgente'?' sel-muy-urgente':'')+'" onclick="setPriority(\'muy-urgente\')">🔴 Muy urgente</button>';
+      html+='</div>';
+    }
+    html+='</div>';
+  });
+  html+='</div></div>';
+
+  if(state.msg){html+='<div class="alert alert-'+(state.msg.type||'info')+'">'+state.msg.text+'</div>';}
+
+  html+='<div class="footer">';
+  html+='<button class="btn btn-ghost" onclick="t.closeModal()">Cancelar</button>';
+  html+='<button class="btn btn-primary" onclick="submitForm()" '+(state.saving?'disabled':'')+'>'+
+    (state.saving?'⏳ Creando...':'➡ Elegir lista y crear tarjeta')+'</button>';
+  html+='</div></div>';
+
+  app().innerHTML=html;
+  t.sizeTo('#app');
+}
+
+function selectChanged(id,sub,val){
+  state.values[id]=val;
+  if(id==='marca'){state.marca=val;if($('f_modelo'))renderForm();}
+}
+function setPriority(p){state.priority=p;renderForm();}
+
+function submitForm(){
+  var tpl=state.tpl;
+  var missing=tpl.fields.filter(function(f){return f.required&&!state.values[f.id];});
+  if(missing.length){
+    state.msg={type:'warn',text:'⚠️ Completa los campos obligatorios: '+missing.map(function(f){return f.label;}).join(', ')};
+    return render();
+  }
+  state.saving=true;
+  render();
+
+  // Load credentials and lists
+  Promise.all([
+    t.get('member','private','apiKey'),
+    t.get('member','private','apiToken'),
+    t.lists('open','all')
+  ]).then(function(res){
+    state.apiKey=res[0]||'';
+    state.apiToken=res[1]||'';
+    state.lists=res[2]||[];
+    state.saving=false;
+
+    if(!state.apiKey||!state.apiToken){
+      state.msg={type:'warn',text:'⚠️ Configura el API Key y Token primero en la ⚙️ Configuración del Power-Up'};
+      render();return;
+    }
+    if(!state.lists.length){
+      state.msg={type:'warn',text:'⚠️ No se encontraron listas en este tablero'};
+      render();return;
+    }
+    // Auto-select list by name
+    var defaultList=state.lists.find(function(l){
+      var n=l.name.toLowerCase();
+      return n.includes('pedido')||n.includes('solicitud')||n.includes('recepci')||n.includes('inbox')||n.includes('entrada');
+    });
+    state.selectedList=defaultList?defaultList.id:state.lists[0].id;
+    state.step='list-pick';
+    render();
+  });
+}
+
+function renderListPick(){
+  var tpl=state.tpl;
+  var html='<div class="scroll">';
+  html+='<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:15px;margin-bottom:4px">Elige la lista de destino</div>';
+  html+='<div style="font-size:12px;color:#64748b;margin-bottom:14px">¿En qué lista quieres crear la tarjeta de '+tpl.ico+' '+tpl.name+'?</div>';
+  html+='<div style="background:white;border:1.5px solid var(--border);border-radius:10px;padding:6px;margin-bottom:14px">';
+  state.lists.forEach(function(l){
+    html+='<div class="list-item'+(state.selectedList===l.id?' sel':'')+'" onclick="state.selectedList=\''+l.id+'\';render()">';
+    html+='<span style="font-size:14px">'+(state.selectedList===l.id?'●':'○')+'</span> '+l.name;
+    html+='</div>';
+  });
+  html+='</div>';
+  if(state.msg){html+='<div class="alert alert-'+(state.msg.type||'info')+'">'+state.msg.text+'</div>';}
+  html+='<div class="footer">';
+  html+='<button class="btn btn-ghost" onclick="state.step=\'form\';state.msg=null;render()">← Volver</button>';
+  html+='<button class="btn btn-primary" onclick="createCard()" '+(state.saving?'disabled':'')+'>'+
+    (state.saving?'⏳ Creando tarjeta...':'✅ Crear tarjeta')+'</button>';
+  html+='</div></div>';
+  app().innerHTML=html;
+  t.sizeTo('#app');
+}
+
+function createCard(){
+  if(!state.selectedList){state.msg={type:'warn',text:'Selecciona una lista'};return render();}
+  state.saving=true;render();
+
+  var tpl=state.tpl;
+  var v=state.values;
+
+  // Build card title
+  var titleParts=[tpl.ico];
+  if(tpl.id==='airbag')     titleParts.push('Airbag ·',(v.matricula||'?'),'·',(v.cliente||'?'));
+  if(tpl.id==='neumaticos') titleParts.push('Neumáticos ·',(v.matricula||'?'),'·',(v.medida||'?'));
+  if(tpl.id==='general')    titleParts.push('Pedido ·',(v.referencia||'?'),'·',(v.descripcion||'?').substring(0,30));
+  var title=titleParts.join(' ');
+
+  // Build description
+  var desc=buildDesc(tpl,v);
+  // Add priority label
+  var labelColor=state.priority==='muy-urgente'?'red':state.priority==='urgente'?'yellow':'green';
+
+  var payload={
+    name: title,
+    desc: desc,
+    idList: state.selectedList,
+    pos: 'top'
+  };
+
+  fetch('https://api.trello.com/1/cards?key='+encodeURIComponent(state.apiKey)+'&token='+encodeURIComponent(state.apiToken),{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  })
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  .then(function(card){
+    // Store structured data on the card
+    var cardData={
+      template: tpl.id,
+      fields: v,
+      priority: state.priority,
+      createdAt: Date.now()
+    };
+    return t.set('card','shared','pedido-data',cardData,{cardId:card.id})
+      .catch(function(){})
+      .then(function(){return card;});
+  })
+  .then(function(card){
+    state.saving=false;
+    state.msg={type:'ok',text:'✅ Tarjeta creada correctamente en "'+
+      (state.lists.find(function(l){return l.id===state.selectedList;})||{name:'la lista'}).name+'"'};
+    state.step='done';
+    app().innerHTML='<div class="scroll">'
+      +'<div style="text-align:center;padding:30px 16px">'
+      +'<div style="font-size:48px;margin-bottom:14px">✅</div>'
+      +'<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:18px;margin-bottom:8px">Tarjeta creada</div>'
+      +'<div style="font-size:13px;color:#475569;margin-bottom:24px">La solicitud de <b>'+tpl.name+'</b> se ha añadido al tablero</div>'
+      +'<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'
+      +'<button class="btn btn-ghost" onclick="state.step=\'pick\';state.values={};state.msg=null;render()">📋 Nueva solicitud</button>'
+      +'<button class="btn btn-primary" onclick="t.closeModal()">✓ Cerrar</button>'
+      +'</div></div></div>';
+    t.sizeTo('#app');
+  })
+  .catch(function(err){
+    state.saving=false;
+    state.msg={type:'warn',text:'❌ Error al crear la tarjeta: '+err.message+'. Revisa API Key y Token en Configuración.'};
+    state.step='list-pick';
+    render();
+  });
+}
+
+function buildDesc(tpl,v){
+  var lines=['## '+tpl.ico+' '+tpl.name,''];
+  var labels={
+    matricula:'🚗 Matrícula',cliente:'👤 Cliente',telefono:'📞 Teléfono',
+    marca:'🏷 Marca',modelo:'🚙 Modelo',vin:'🔑 VIN/Bastidor',
+    tipo_airbag:'💥 Tipo airbag',medida:'📏 Medida',cantidad:'🔢 Cantidad',
+    tipo:'❄️ Tipo',marca_neum:'🏷 Marca',con_llanta:'🛞 Con llanta',
+    referencia:'#️⃣ Referencia',descripcion:'📝 Descripción',
+    proveedor:'🏪 Proveedor',solicitado_por:'👤 Solicitado por',notas:'📋 Notas'
+  };
+  tpl.fields.forEach(function(f){
+    if(f.type==='priority')return;
+    var val=v[f.id]||(f.type==='select'?f.opts&&f.opts[0]:null);
+    if(!val)return;
+    lines.push((labels[f.id]||f.label)+': **'+val+'**');
+  });
+  var pmap={normal:'🟢 Normal',urgente:'⚠️ Urgente','muy-urgente':'🔴 MUY URGENTE'};
+  lines.push('','⚡ Prioridad: **'+(pmap[state.priority]||state.priority)+'**');
+  lines.push('','---','*Generado con Stellantis Recambios Power-Up*');
+  return lines.join('\n');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MODO: DETALLE DE TARJETA
+══════════════════════════════════════════════════════════════ */
+function renderCardDetail(){
+  t.get('card','shared','pedido-data').then(function(data){
+    if(!data){
+      app().innerHTML='<div class="scroll"><div class="alert alert-warn">Esta tarjeta no tiene datos de plantilla almacenados. Solo las tarjetas creadas con el Power-Up tienen información estructurada.</div>'
+        +'<div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn btn-ghost" onclick="t.closeModal()">Cerrar</button></div></div>';
+      t.sizeTo('#app');return;
+    }
+
+    var tpl=TEMPLATES[data.template]||{ico:'📦',name:'Pedido',fields:[]};
+    var v=data.fields||{};
+    var pmap={normal:'🟢 Normal',urgente:'⚠️ Urgente','muy-urgente':'🔴 MUY URGENTE'};
+
+    var html='<div class="scroll">';
+    html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">';
+    html+='<div style="font-size:24px">'+tpl.ico+'</div>';
+    html+='<div style="flex:1"><div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:15px">'+tpl.name+'</div>';
+    html+='<div style="font-size:11px;color:#64748b">'+new Date(data.createdAt).toLocaleString('es-ES')+'</div></div>';
+    html+='<div class="chip" style="'+(data.priority==='muy-urgente'?'background:#fee2e2;border-color:#fca5a5;color:#991b1b':data.priority==='urgente'?'background:#fef3c7;border-color:#fbbf24;color:#92400e':'background:#d1fae5;border-color:#6ee7b7;color:#065f46')+'">'+
+      (pmap[data.priority]||'Normal')+'</div>';
+    html+='</div>';
+
+    html+='<div style="background:white;border:1.5px solid var(--border);border-radius:10px;padding:14px">';
+    tpl.fields.forEach(function(f){
+      if(f.type==='priority')return;
+      var val=v[f.id];
+      if(!val)return;
+      html+='<div class="detail-row"><div class="detail-label">'+f.label+'</div>';
+      html+='<div class="detail-val" style="'+(f.mono||f.upper?'font-family:monospace;letter-spacing:0.05em':'')+'">'+val+'</div></div>';
+    });
+    html+='</div>';
+
+    html+='<div class="footer"><button class="btn btn-ghost" onclick="t.closeModal()">Cerrar</button></div>';
+    html+='</div>';
+    app().innerHTML=html;
+    t.sizeTo('#app');
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MODO: CONFIGURACIÓN
+══════════════════════════════════════════════════════════════ */
+function renderSettings(){
+  Promise.all([
+    t.get('member','private','apiKey'),
+    t.get('member','private','apiToken')
+  ]).then(function(res){
+    var key=res[0]||'';
+    var tok=res[1]||'';
+
+    var html='<div class="scroll">';
+    html+='<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:16px;margin-bottom:4px">⚙️ Configuración</div>';
+    html+='<div style="font-size:12px;color:#64748b;margin-bottom:16px">Tus credenciales se guardan de forma privada en tu cuenta de Trello</div>';
+
+    html+='<div class="alert alert-info">1. Ve a <a href="https://trello.com/app-key" target="_blank" style="color:#1d4ed8;font-weight:700">trello.com/app-key</a> y copia tu <b>API Key</b><br>2. En esa misma página haz clic en <b>"Generar Token"</b> y autoriza la app<br>3. Pega ambos aquí abajo y guarda</div>';
+
+    html+='<div class="settings-block">';
+    html+='<div class="field"><label>API Key de Trello</label>';
+    html+='<input id="cfg_key" type="text" value="'+key+'" placeholder="Pega tu API Key"></div>';
+    html+='<div class="field"><label>Token de Trello</label>';
+    html+='<input id="cfg_tok" type="password" value="'+tok+'" placeholder="Pega tu Token"></div>';
+    html+='</div>';
+
+    if(state.msg){html+='<div class="alert alert-'+(state.msg.type||'info')+'">'+state.msg.text+'</div>';}
+
+    html+='<div class="footer">';
+    html+='<button class="btn btn-ghost" onclick="t.closeModal()">Cerrar</button>';
+    html+='<button class="btn btn-primary" onclick="saveSettings()">💾 Guardar configuración</button>';
+    html+='</div></div>';
+
+    app().innerHTML=html;
+    t.sizeTo('#app');
+  });
+}
+
+function saveSettings(){
+  var key=($('cfg_key')||{}).value||'';
+  var tok=($('cfg_tok')||{}).value||'';
+  if(!key||!tok){state.msg={type:'warn',text:'⚠️ Ambos campos son obligatorios'};return renderSettings();}
+  Promise.all([
+    t.set('member','private','apiKey',key),
+    t.set('member','private','apiToken',tok)
+  ]).then(function(){
+    state.msg={type:'ok',text:'✅ Configuración guardada correctamente'};
+    renderSettings();
+  });
+}
+
+/* ── init ── */
+render();
+</script>
+</body>
+</html>

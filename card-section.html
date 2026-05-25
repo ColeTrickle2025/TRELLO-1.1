@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<script src="https://p.trellocdn.com/power-up.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',system-ui,sans-serif;font-size:13px;color:#0f172a;padding:10px}
+.row{display:flex;gap:6px;margin-bottom:7px;align-items:flex-start}
+.lbl{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;
+     letter-spacing:0.04em;min-width:100px;padding-top:1px}
+.val{font-size:12px;color:#0f172a;font-weight:500}
+.chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;
+      border-radius:99px;font-size:11px;font-weight:700;border:1.5px solid}
+.empty{color:#94a3b8;font-size:12px;text-align:center;padding:20px 0}
+.tpl-badge{display:inline-flex;align-items:center;gap:5px;
+  background:#ede9fe;color:#6d28d9;border-radius:6px;
+  padding:3px 8px;font-size:11px;font-weight:700;margin-bottom:10px}
+a{color:#1d4ed8;font-size:12px;font-weight:600}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="root"></div>
+<script>
+var t=TrelloPowerUp.iframe();
+
+var TEMPLATES={
+  airbag:{ico:'🛡️',name:'Airbag / Campaña',
+    main:['matricula','cliente','tipo_airbag'],
+    labels:{matricula:'Matrícula',cliente:'Cliente',tipo_airbag:'Tipo airbag',telefono:'Teléfono'}},
+  neumaticos:{ico:'🔄',name:'Neumáticos',
+    main:['matricula','cliente','medida','cantidad','tipo'],
+    labels:{matricula:'Matrícula',cliente:'Cliente',medida:'Medida',cantidad:'Unidades',tipo:'Tipo'}},
+  general:{ico:'📦',name:'Pedido General',
+    main:['referencia','descripcion','cantidad'],
+    labels:{referencia:'Referencia',descripcion:'Descripción',cantidad:'Cantidad',solicitado_por:'Solicitado por'}}
+};
+var PRIO_STYLES={
+  'normal':      'background:#d1fae5;border-color:#6ee7b7;color:#065f46',
+  'urgente':     'background:#fef3c7;border-color:#fbbf24;color:#92400e',
+  'muy-urgente': 'background:#fee2e2;border-color:#fca5a5;color:#991b1b'
+};
+var PRIO_LABELS={normal:'🟢 Normal',urgente:'⚠️ Urgente','muy-urgente':'🔴 Muy urgente'};
+
+t.get('card','shared','pedido-data').then(function(data){
+  var root=document.getElementById('root');
+  if(!data){
+    root.innerHTML='<div class="empty">Sin datos de plantilla<br><a href="#" onclick="return false">Añadir desde tarjeta →</a></div>';
+    t.sizeTo('body');return;
+  }
+  var tpl=TEMPLATES[data.template]||{ico:'📦',name:'Pedido',main:[],labels:{}};
+  var v=data.fields||{};
+  var html='<div class="tpl-badge">'+tpl.ico+' '+tpl.name+'</div>';
+
+  tpl.main.forEach(function(k){
+    var val=v[k];if(!val)return;
+    html+='<div class="row"><div class="lbl">'+(tpl.labels[k]||k)+'</div>';
+    html+='<div class="val">'+val+'</div></div>';
+  });
+  if(data.priority){
+    html+='<div class="row"><div class="lbl">Prioridad</div>';
+    html+='<div class="val"><span class="chip" style="'+PRIO_STYLES[data.priority]+'">'+(PRIO_LABELS[data.priority]||data.priority)+'</span></div></div>';
+  }
+  root.innerHTML=html;
+  t.sizeTo('body');
+});
+</script>
+</body>
+</html>
