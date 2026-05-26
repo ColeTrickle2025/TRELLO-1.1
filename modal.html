@@ -149,19 +149,32 @@ var TEMPLATES={
     desc:'Pedido de neumáticos y llantas',
     listName:'Solicitudes Neumáticos',
     fields:[
-      {id:'matricula',    label:'Matrícula',           type:'text',  required:true,  ph:'1234ABC', upper:true},
-      {id:'cliente',      label:'Cliente',             type:'text',  required:true,  ph:'Nombre completo'},
-      {id:'telefono',     label:'Teléfono',            type:'tel',   required:false, ph:'6XX XXX XXX'},
-      {id:'medida',       label:'Medida del neumático',type:'text',  required:true,  ph:'195/65 R15', mono:true},
-      {id:'cantidad',     label:'Cantidad',            type:'number',required:true,  ph:'4'},
-      {id:'tipo',         label:'Tipo',                type:'select',required:true,
+      {id:'matricula',   label:'Matrícula',            type:'text',   required:true,  ph:'1234ABC', upper:true},
+      {id:'cliente',     label:'Cliente',              type:'text',   required:true,  ph:'Nombre completo'},
+      {id:'telefono',    label:'Teléfono',             type:'tel',    required:false, ph:'6XX XXX XXX'},
+      {id:'marca',       label:'Marca vehículo',       type:'select', required:false, opts:BRANDS, sub:'modelo'},
+      {id:'modelo',      label:'Modelo',               type:'select', required:false, opts:[]},
+      {id:'cantidad',    label:'Cantidad',             type:'select', required:true,
+        opts:['1 neumático','2 neumáticos','4 neumáticos']},
+      {id:'ancho',       label:'Ancho',                type:'select', required:true,
+        opts:['155','165','175','185','195','205','215','225','235','245','255','265','275']},
+      {id:'perfil',      label:'Perfil',               type:'select', required:true,
+        opts:['30','35','40','45','50','55','60','65','70','75','80']},
+      {id:'llanta',      label:'Llanta (pulgadas)',    type:'select', required:true,
+        opts:['13"','14"','15"','16"','17"','18"','19"','20"','21"','22"']},
+      {id:'ind_carga',   label:'Índice de carga',      type:'select', required:false,
+        opts:['60 (250kg)','65 (290kg)','70 (335kg)','75 (387kg)','80 (450kg)','82 (475kg)','84 (500kg)','85 (515kg)','86 (530kg)','87 (545kg)','88 (560kg)','89 (580kg)','90 (600kg)','91 (615kg)','92 (630kg)','93 (650kg)','94 (670kg)','95 (690kg)','96 (710kg)','97 (730kg)','98 (750kg)','99 (775kg)','100 (800kg)','101 (825kg)','102 (850kg)','103 (875kg)','104 (900kg)','105 (925kg)','106 (950kg)','107 (975kg)','108 (1000kg)']},
+      {id:'cod_vel',     label:'Código de velocidad',  type:'select', required:false,
+        opts:['N (140km/h)','P (150km/h)','Q (160km/h)','R (170km/h)','S (180km/h)','T (190km/h)','H (210km/h)','V (240km/h)','W (270km/h)','Y (300km/h)','ZR (+240km/h)']},
+      {id:'tipo',        label:'Temporada',            type:'select', required:true,
         opts:['Verano','Invierno','All Season / 4 estaciones']},
-      {id:'marca_neum',   label:'Marca preferida',     type:'text',  required:false, ph:'Michelin, Continental, cualquiera...'},
-      {id:'con_llanta',   label:'Incluye llanta',      type:'select',required:false,
+      {id:'marca_neum',  label:'Marca preferida',      type:'select', required:false,
+        opts:['Sin preferencia','Michelin','Continental','Bridgestone','Goodyear','Pirelli','Dunlop','Hankook','Yokohama','Falken','Firestone','BFGoodrich','Kumho']},
+      {id:'con_llanta',  label:'Incluye llanta',       type:'select', required:false,
         opts:['No, solo cubierta','Sí, con llanta de acero','Sí, con llanta de aluminio']},
-      {id:'fecha_cita',   label:'Fecha de cita',       type:'fecha_cita', required:true},
-      {id:'prioridad',    label:'Prioridad',           type:'priority'},
-      {id:'notas',        label:'Notas / Observaciones',type:'textarea', ph:'Equilibrado, fecha de montaje...'},
+      {id:'fecha_cita',  label:'Fecha de cita',        type:'fecha_cita', required:true},
+      {id:'prioridad',   label:'Prioridad',            type:'priority'},
+      {id:'notas',       label:'Notas / Observaciones',type:'textarea', required:false, ph:'Equilibrado, TPMS, observaciones...'},
     ]
   },
   general:{
@@ -543,8 +556,12 @@ function createCard(){
       titleParts.push((v.cliente||'?').toUpperCase());
     }
     if(tpl.id==='neumaticos'){
+      var medidaCompleta=(v.ancho||'?')+'/'+(v.perfil||'?')+'R'+(v.llanta||'?').replace('"','');
+      if(v.ind_carga&&v.cod_vel) medidaCompleta+=' '+(v.ind_carga.split(' ')[0])+(v.cod_vel.split(' ')[0]);
       titleParts.push('[NEUMATICOS]');
       titleParts.push(v.matricula||'?');
+      titleParts.push(medidaCompleta);
+      titleParts.push((v.cantidad||'').replace(' neumático','').replace(' neumáticos','')+'u');
       titleParts.push(marcaModelo);
       titleParts.push((v.cliente||'?').toUpperCase());
     }
