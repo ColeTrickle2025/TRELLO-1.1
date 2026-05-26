@@ -125,7 +125,7 @@ var MODELOS={
 /* ── templates definition ── */
 var TEMPLATES={
   airbag:{
-    id:'airbag',ico:'🛡️',
+    id:'airbag',ico:'AIR',
     name:'Airbag / Campaña',
     desc:'Recall y campaña de airbags Stellantis',
     listName:'Solicitudes Airbag',
@@ -144,7 +144,7 @@ var TEMPLATES={
     ]
   },
   neumaticos:{
-    id:'neumaticos',ico:'🔄',
+    id:'neumaticos',ico:'NEU',
     name:'Neumáticos',
     desc:'Pedido de neumáticos y llantas',
     listName:'Solicitudes Neumáticos',
@@ -165,7 +165,7 @@ var TEMPLATES={
     ]
   },
   general:{
-    id:'general',ico:'📦',
+    id:'general',ico:'PED',
     name:'Pedido General',
     desc:'Piezas, repuestos y material diverso',
     listName:'Solicitudes Generales',
@@ -234,7 +234,7 @@ function renderNewRequest(){
 function renderWho(){
   // Mostrar pantalla de carga mientras detectamos el usuario
   app().innerHTML='<div class="scroll" style="text-align:center;padding:40px 20px">'
-    +'<div style="font-size:36px;margin-bottom:14px">👤</div>'
+    +'<div style="font-size:11px;font-weight:800;letter-spacing:0.1em;color:#64748b;margin-bottom:14px;text-transform:uppercase">Usuario</div>'
     +'<div style="font-size:14px;color:#64748b">Detectando usuario de Trello...</div>'
     +'</div>';
   t.sizeTo('#app');
@@ -261,7 +261,7 @@ function renderWho(){
 function renderWhoManual(){
   var html='<div class="scroll">';
   html+='<div style="text-align:center;padding:10px 0 18px">';
-  html+='<div style="font-size:32px;margin-bottom:8px">👤</div>';
+  html+='<div style="font-size:11px;font-weight:800;letter-spacing:0.1em;color:#64748b;margin-bottom:8px;text-transform:uppercase">Usuario</div>';
   html+='<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:18px;color:#0c1a35;margin-bottom:4px">¿Quién eres?</div>';
   html+='<div style="font-size:12px;color:#64748b">No se pudo detectar tu usuario. Selecciona tu nombre.</div>';
   html+='</div>';
@@ -307,7 +307,7 @@ function renderPick(){
   html+='<div class="tpl-grid">';
   Object.values(TEMPLATES).forEach(function(tpl){
     html+='<div class="tpl-card" onclick="pickTemplate(\''+tpl.id+'\')">';
-    html+='<div class="ico">'+tpl.ico+'</div>';
+    html+='<div style="font-size:10px;font-weight:800;letter-spacing:0.1em;color:white;background:#0c1a35;border-radius:5px;padding:5px 8px;margin:0 auto 10px;display:inline-block">'+tpl.ico+'</div>';
     html+='<div class="name">'+tpl.name+'</div>';
     html+='<div class="desc">'+tpl.desc+'</div>';
     html+='</div>';
@@ -341,7 +341,7 @@ function renderForm(){
   var tpl=state.tpl;
   var html='<div class="scroll">';
   html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">';
-  html+='<div style="font-size:22px">'+tpl.ico+'</div>';
+  html+='<div style="font-size:11px;font-weight:800;letter-spacing:0.08em;color:white;background:#0c1a35;border-radius:5px;padding:4px 8px">'+tpl.ico+'</div>';
   html+='<div><div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:16px">'+tpl.name+'</div>';
   html+='<div style="font-size:11px;color:#64748b">'+tpl.desc+'</div></div>';
   html+='<button class="btn btn-ghost btn-sm" onclick="state.step=\'pick\';render()" style="margin-left:auto">← Cambiar</button>';
@@ -378,22 +378,22 @@ function renderForm(){
       // Sin cita checkbox
       html+='<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:#475569;text-transform:none;letter-spacing:0">';
       html+='<input type="checkbox" id="chk_sin_cita"'+(sinCita?' checked':'')+' onchange="toggleSinCita(this.checked)" style="width:16px;height:16px;cursor:pointer;border-radius:4px;accent-color:#1d4ed8">';
-      html+='🚗 Vehículo sin cita asignada</label>';
+      html+='Vehículo sin cita asignada</label>';
       // Date picker (hidden if sin cita)
       html+='<input type="date" id="f_fecha_cita" value="'+fcVal+'"'+(sinCita?' style="display:none"':'')+' min="'+new Date().toISOString().split("T")[0]+'" oninput="state.values[\'fecha_cita\']=this.value" style="font-size:13px">';
       if(!sinCita&&!fcVal){
         html+='<div style="font-size:11px;color:#dc2626;font-weight:600">⚠️ Obligatorio: selecciona una fecha o marca "Sin cita"</div>';
       }
       if(sinCita){
-        html+='<div style="font-size:12px;background:#fef3c7;border:1.5px solid #fbbf24;border-radius:6px;padding:6px 10px;color:#92400e;font-weight:600">⚠️ Se creará en la lista SIN CITA del responsable asignado</div>';
+        html+='<div style="font-size:12px;background:#fef3c7;border:1.5px solid #fbbf24;border-radius:6px;padding:6px 10px;color:#92400e;font-weight:600">Se creará en la lista SIN CITA del responsable asignado</div>';
       }
       html+='</div>';
     } else if(f.type==='priority'){
       var p=state.priority;
       html+='<div class="prio-wrap">';
-      html+='<button class="prio-btn'+(p==='normal'?' sel-normal':'')+'" onclick="setPriority(\'normal\')">✅ Normal</button>';
-      html+='<button class="prio-btn'+(p==='urgente'?' sel-urgente':'')+'" onclick="setPriority(\'urgente\')">⚠️ Urgente</button>';
-      html+='<button class="prio-btn'+(p==='muy-urgente'?' sel-muy-urgente':'')+'" onclick="setPriority(\'muy-urgente\')">🔴 Muy urgente</button>';
+      html+='<button class="prio-btn'+(p==='normal'?' sel-normal':'')+'" onclick="setPriority(\'normal\')">Normal</button>';
+      html+='<button class="prio-btn'+(p==='urgente'?' sel-urgente':'')+'" onclick="setPriority(\'urgente\')">Urgente</button>';
+      html+='<button class="prio-btn'+(p==='muy-urgente'?' sel-muy-urgente':'')+'" onclick="setPriority(\'muy-urgente\')">Muy urgente</button>';
       html+='</div>';
     }
     html+='</div>';
@@ -405,7 +405,7 @@ function renderForm(){
   html+='<div class="footer">';
   html+='<button class="btn btn-ghost" onclick="t.closeModal()">Cancelar</button>';
   html+='<button class="btn btn-primary" onclick="submitForm()" '+(state.saving?'disabled':'')+'>'+
-    (state.saving?'⏳ Creando...':'➡ Elegir lista y crear tarjeta')+'</button>';
+    (state.saving?'⏳ Creando...':'Elegir lista y crear tarjeta')+'</button>';
   html+='</div></div>';
 
   app().innerHTML=html;
@@ -514,7 +514,7 @@ function renderListPick(){
   html+='<div class="footer">';
   html+='<button class="btn btn-ghost" onclick="state.step=\'form\';state.msg=null;render()">← Volver</button>';
   html+='<button class="btn btn-primary" onclick="createCard()" '+(state.saving?'disabled':'')+'>'+
-    (state.saving?'⏳ Creando tarjeta...':'✅ Crear tarjeta')+'</button>';
+    (state.saving?'Creando...':'Crear tarjeta')+'</button>';
   html+='</div></div>';
   app().innerHTML=html;
   t.sizeTo('#app');
@@ -534,24 +534,24 @@ function createCard(){
   Promise.resolve().then(function(){
 
     // Construir título en MAYÚSCULAS con icono de marca
-    var brandIco=BRAND_ICONS[v.marca]||'🚗';
     var titleParts=[];
+    var marcaModelo=(v.marca||'').toUpperCase()+(v.modelo?' - '+v.modelo.toUpperCase():'');
     if(tpl.id==='airbag'){
-      titleParts.push('🛡️ AIRBAG');
+      titleParts.push('[AIRBAG]');
       titleParts.push(v.matricula||'?');
-      titleParts.push(brandIco+' '+(v.marca||'').toUpperCase()+(v.modelo?' '+v.modelo.toUpperCase():''));
+      titleParts.push(marcaModelo);
       titleParts.push((v.cliente||'?').toUpperCase());
     }
     if(tpl.id==='neumaticos'){
-      titleParts.push('🔄 NEUMÁTICOS');
+      titleParts.push('[NEUMATICOS]');
       titleParts.push(v.matricula||'?');
-      titleParts.push(brandIco+' '+(v.marca||'').toUpperCase()+(v.modelo?' '+v.modelo.toUpperCase():''));
+      titleParts.push(marcaModelo);
       titleParts.push((v.cliente||'?').toUpperCase());
     }
     if(tpl.id==='general'){
-      titleParts.push('📦 PEDIDO');
+      titleParts.push('[PEDIDO]');
       titleParts.push(v.matricula||'?');
-      titleParts.push(brandIco+' '+(v.marca||'').toUpperCase()+(v.modelo?' '+v.modelo.toUpperCase():''));
+      titleParts.push(marcaModelo);
       titleParts.push((v.cliente||'?').toUpperCase());
     }
     titleParts.push('PEDIDO POR '+pedidoPor);
@@ -608,6 +608,16 @@ function createCard(){
       priority: state.priority,
       createdAt: Date.now()
     };
+    // Añadir comentario con el nombre real del solicitante
+    var comentario='Solicitud creada por: *'+pedidoPor+'*'
+      +'\n\n_Este pedido fue registrado a través del Power-Up Stellantis Recambios._';
+    fetch('https://api.trello.com/1/cards/'+card.id+'/actions/comments'
+      +'?key='+API_KEY+'&token='+API_TOKEN,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:comentario})
+    }).catch(function(){});
+
     return t.set('card','shared','pedido-data',cardData,{cardId:card.id})
       .catch(function(){})
       .then(function(){return card;});
@@ -619,12 +629,12 @@ function createCard(){
     state.step='done';
     app().innerHTML='<div class="scroll">'
       +'<div style="text-align:center;padding:30px 16px">'
-      +'<div style="font-size:48px;margin-bottom:14px">✅</div>'
+      +'<div style="font-size:11px;font-weight:800;letter-spacing:0.1em;color:#059669;margin-bottom:14px">COMPLETADO</div>'
       +'<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:18px;margin-bottom:8px">Tarjeta creada</div>'
       +'<div style="font-size:13px;color:#475569;margin-bottom:24px">La solicitud de <b>'+tpl.name+'</b> se ha añadido al tablero</div>'
       +'<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'
-      +'<button class="btn btn-ghost" onclick="state.step=\'who\';state.values={};state.msg=null;render()">📋 Nueva solicitud</button>'
-      +'<button class="btn btn-primary" onclick="t.closeModal()">✓ Cerrar</button>'
+      +'<button class="btn btn-ghost" onclick="state.step=\'who\';state.values={};state.msg=null;render()">Nueva solicitud</button>'
+      +'<button class="btn btn-primary" onclick="t.closeModal()">Cerrar</button>'
       +'</div></div></div>';
     t.sizeTo('#app');
   })
@@ -642,9 +652,9 @@ function createCard(){
 }
 
 function buildDesc(tpl,v,pedidoPor){
-  var brandIco=BRAND_ICONS[v.marca]||'🚗';
+  var brandIco='';
   var vehiculo=v.marca?(brandIco+' '+(v.marca).toUpperCase()+(v.modelo?' '+v.modelo.toUpperCase():'')):null;
-  var lines=['## '+tpl.ico+' '+tpl.name.toUpperCase(),''];
+  var lines=['## '+tpl.name.toUpperCase(),''];
   pedidoPor=pedidoPor||'';
   var labels={
     matricula:'🚗 Matrícula',cliente:'👤 Cliente',telefono:'📞 Teléfono',
@@ -681,7 +691,7 @@ function renderCardDetail(){
       t.sizeTo('#app');return;
     }
 
-    var tpl=TEMPLATES[data.template]||{ico:'📦',name:'Pedido',fields:[]};
+    var tpl=TEMPLATES[data.template]||{ico:'PED',name:'Pedido',fields:[]};
     var v=data.fields||{};
     var pmap={normal:'🟢 Normal',urgente:'⚠️ Urgente','muy-urgente':'🔴 MUY URGENTE'};
 
