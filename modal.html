@@ -373,17 +373,9 @@ function renderForm(){
     var brandLogoHtml='';
     if(f.id==='marca'){
       var _blogo=BRAND_ICONS[state.values['marca']||state.marca];
-      if(_blogo){
-        var _marca=(state.values['marca']||state.marca).toUpperCase();
-        brandLogoHtml=[
-          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;',
-          'padding:7px 10px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px">',
-          '<img src="'+_blogo+'" width="26" height="26" ',
-          'style="object-fit:contain;filter:brightness(0)" ',
-          'onerror="this.style.visibility=\'hidden\'">',
-          '<span style="font-size:11px;font-weight:800;color:#0c1a35;letter-spacing:0.06em">',
-          _marca,'</span></div>'
-        ].join('');
+      var _mn=(state.values['marca']||state.marca||'').toUpperCase();
+      if(_blogo && _mn){
+        brandLogoHtml='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:7px 10px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px"><img src="'+_blogo+'" width="24" height="24" style="object-fit:contain;filter:brightness(0)"><span style="font-size:11px;font-weight:800;color:#0c1a35">'+_mn+'</span></div>';
       }
     }
     html+='<div class="field'+(isFull?' full':'')+'">'+brandLogoHtml+'<label>'+f.label+(f.required?' <span style="color:#dc2626">*</span>':'')+'</label>';
