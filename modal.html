@@ -96,18 +96,22 @@ var params=new URLSearchParams(window.location.search);
 var MODE=params.get('mode')||'new-request';
 
 var BRANDS=['Peugeot','Citroën','Opel','Fiat','Alfa Romeo','Lancia','DS Automobiles','Abarth','Jeep','Maserati','Otro'];
+// Simple Icons CDN — logos de marcas reales
+// URL: https://cdn.simpleicons.org/[slug]/[color]
+var SI = 'https://cdn.simpleicons.org/';
+
 var BRAND_ICONS={
-  'Peugeot':       '🦁',
-  'Citroën':       '⬡',
-  'Opel':          '⚡',
-  'Fiat':          '🔵',
-  'Alfa Romeo':    '🔴',
-  'Lancia':        '🏹',
-  'DS Automobiles':'💎',
-  'Abarth':        '🦂',
-  'Jeep':          '🟩',
-  'Maserati':      '🔱',
-  'Otro':          '🚗',
+  'Peugeot':       SI+'peugeot/0c1a35',
+  'Citroën':       SI+'citroen/0c1a35',
+  'Opel':          SI+'opel/0c1a35',
+  'Fiat':          SI+'fiat/0c1a35',
+  'Alfa Romeo':    SI+'alfaromeo/B01F24',
+  'Lancia':        SI+'lancia/003087',
+  'DS Automobiles':SI+'dsautomobiles/0c1a35',
+  'Abarth':        SI+'abarth/E30613',
+  'Jeep':          SI+'jeep/0c1a35',
+  'Maserati':      SI+'maserati/1A1A6E',
+  'Otro':          null,
 };
 var MODELOS={
   'Peugeot':['208','308','408','508','2008','3008','5008','Partner','Boxer'],
@@ -365,7 +369,18 @@ function renderForm(){
   tpl.fields.forEach(function(f,i){
     var isFull=f.type==='textarea'||f.type==='priority'||f.id==='descripcion'||f.id==='vin'||f.id==='referencia';
     if(isFull&&!fullRow){html+='</div><div class="row">';fullRow=false;}
-    html+='<div class="field'+(isFull?' full':'')+'"><label>'+f.label+(f.required?' <span style="color:#dc2626">*</span>':'')+'</label>';
+    // Logo de marca encima del campo
+    var brandLogoHtml='';
+    if(f.id==='marca'){
+      var _blogo=BRAND_ICONS[state.values['marca']||state.marca];
+      if(_blogo){
+        brandLogoHtml='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:7px 10px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px">'
+          +'<img src="'+_blogo+'" width="26" height="26" style="object-fit:contain" onerror="this.style.display='none'">'
+          +'<span style="font-size:11px;font-weight:800;color:#0c1a35;letter-spacing:0.06em">'+(state.values['marca']||state.marca).toUpperCase()+'</span>'
+          +'</div>';
+      }
+    }
+    html+='<div class="field'+(isFull?' full':'')+'">'+brandLogoHtml+'<label>'+f.label+(f.required?' <span style="color:#dc2626">*</span>':'')+'</label>';
 
     if(f.type==='text'||f.type==='tel'||f.type==='number'){
       var maxLen=f.id==='matricula'?'maxlength="10" ':'';
@@ -681,8 +696,12 @@ function buildDesc(tpl,v,pedidoPor){
     referencia:'#️⃣ Referencia',descripcion:'📝 Descripción',
     que_necesita:'🔧 Qué necesita',proveedor:'🏪 Proveedor',solicitado_por:'👤 Solicitado por',notas:'📋 Notas'
   };
-  // Añadir vehículo con icono de marca al principio
-  if(vehiculo)lines.push(vehiculo);
+  // Logo de marca como imagen en la descripción (Trello soporta Markdown con imágenes)
+  var _brandLogo=BRAND_ICONS[v.marca||''];
+  if(_brandLogo){
+    lines.push('!['+( v.marca||'').toUpperCase()+']('+_brandLogo+')');
+  }
+  if(vehiculo)lines.push('**'+vehiculo+'**');
   tpl.fields.forEach(function(f){
     if(f.type==='priority')return;
     if(f.id==='marca'||f.id==='modelo')return; // ya lo mostramos arriba
