@@ -184,8 +184,21 @@ var TEMPLATES={
 };
 
 /* ── state ── */
+// ── Lista de personas del taller — editar con los nombres reales ────────
+var STAFF=[
+  'JOAN ALVAREZ',
+  'MIRIAM ALVAREZ',
+  'JORDI F.',
+  'J. OLIVER',
+  'RAUL',
+  'CHARLY',
+  'OTRO',
+];
+
 var state={
-  step:'pick',    // pick | form | list-pick
+  step:'who',     // who | pick | form | list-pick | done
+  userName:'',
+  userDetected:false,
   tpl:null,
   values:{},
   priority:'normal',
@@ -212,9 +225,80 @@ function render(){
    MODO: NUEVA SOLICITUD
 ══════════════════════════════════════════════════════════════ */
 function renderNewRequest(){
-  if(state.step==='pick') return renderPick();
-  if(state.step==='form') return renderForm();
+  if(state.step==='who')       return renderWho();
+  if(state.step==='pick')      return renderPick();
+  if(state.step==='form')      return renderForm();
   if(state.step==='list-pick') return renderListPick();
+}
+
+function renderWho(){
+  // Mostrar pantalla de carga mientras detectamos el usuario
+  app().innerHTML='<div class="scroll" style="text-align:center;padding:40px 20px">'
+    +'<div style="font-size:36px;margin-bottom:14px">👤</div>'
+    +'<div style="font-size:14px;color:#64748b">Detectando usuario de Trello...</div>'
+    +'</div>';
+  t.sizeTo('#app');
+
+  // Intentar obtener usuario via SDK de Trello
+  t.member('all')
+  .then(function(member){
+    if(member && member.fullName){
+      state.userName=member.fullName.toUpperCase();
+      state.userDetected=true;
+      state.step='pick';
+      render();
+    } else {
+      // fullName vacío → mostrar selector manual
+      renderWhoManual();
+    }
+  })
+  .catch(function(){
+    // t.member falló → mostrar selector manual
+    renderWhoManual();
+  });
+}
+
+function renderWhoManual(){
+  var html='<div class="scroll">';
+  html+='<div style="text-align:center;padding:10px 0 18px">';
+  html+='<div style="font-size:32px;margin-bottom:8px">👤</div>';
+  html+='<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:18px;color:#0c1a35;margin-bottom:4px">¿Quién eres?</div>';
+  html+='<div style="font-size:12px;color:#64748b">No se pudo detectar tu usuario. Selecciona tu nombre.</div>';
+  html+='</div>';
+  html+='<div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px">';
+  STAFF.forEach(function(name){
+    var sel=state.userName===name;
+    html+='<button onclick="selectWho(\''+name+'\')" style="'
+      +'background:'+(sel?'#1d4ed8':'white')+';color:'+(sel?'white':'#0f172a')+';'
+      +'border:2px solid '+(sel?'#1d4ed8':'#e2e8f0')+';border-radius:10px;'
+      +'padding:12px 16px;font-family:inherit;font-size:14px;font-weight:700;'
+      +'cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">';
+    html+='<span>'+(sel?'●':'○')+'</span> '+name;
+    html+='</button>';
+  });
+  html+='</div>';
+  if(state.msg){html+='<div class="alert alert-'+(state.msg.type||'warn')+'">'+state.msg.text+'</div>';}
+  html+='<div style="display:flex;justify-content:flex-end;gap:8px">';
+  html+='<button class="btn btn-ghost" onclick="t.closeModal()">Cancelar</button>';
+  html+='<button class="btn btn-primary" onclick="confirmWho()">Continuar →</button>';
+  html+='</div></div>';
+  app().innerHTML=html;
+  t.sizeTo('#app');
+}
+
+function selectWho(name){
+  state.userName=name;
+  state.msg=null;
+  renderWhoManual();
+}
+
+function confirmWho(){
+  if(!state.userName){
+    state.msg={type:'warn',text:'⚠️ Selecciona tu nombre para continuar'};
+    return renderWhoManual();
+  }
+  state.step='pick';
+  render();
 }
 
 function renderPick(){
@@ -445,11 +529,9 @@ function createCard(){
   var API_KEY='a94def1efe06824418ef1ebc9bd12b4c';
   var API_TOKEN='ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
 
-  // Obtener nombre del usuario Trello que está creando la tarjeta
-  fetch('https://api.trello.com/1/members/me?key='+API_KEY+'&token='+API_TOKEN+'&fields=fullName')
-  .then(function(r){return r.json();})
-  .then(function(member){
-    var pedidoPor=(member.fullName||'DESCONOCIDO').toUpperCase();
+  // Usar el nombre seleccionado al inicio (no depende del token)
+  var pedidoPor=state.userName||'DESCONOCIDO';
+  Promise.resolve().then(function(){
 
     // Construir título en MAYÚSCULAS con icono de marca
     var brandIco=BRAND_ICONS[v.marca]||'🚗';
@@ -541,7 +623,7 @@ function createCard(){
       +'<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:18px;margin-bottom:8px">Tarjeta creada</div>'
       +'<div style="font-size:13px;color:#475569;margin-bottom:24px">La solicitud de <b>'+tpl.name+'</b> se ha añadido al tablero</div>'
       +'<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'
-      +'<button class="btn btn-ghost" onclick="state.step=\'pick\';state.values={};state.msg=null;render()">📋 Nueva solicitud</button>'
+      +'<button class="btn btn-ghost" onclick="state.step=\'who\';state.values={};state.msg=null;render()">📋 Nueva solicitud</button>'
       +'<button class="btn btn-primary" onclick="t.closeModal()">✓ Cerrar</button>'
       +'</div></div></div>';
     t.sizeTo('#app');
@@ -554,7 +636,7 @@ function createCard(){
   });
   }).catch(function(err){
     state.saving=false;
-    state.msg={type:'warn',text:'❌ Error obteniendo usuario: '+err.message};
+    state.msg={type:'warn',text:'❌ Error al crear la tarjeta: '+err.message};
     render();
   });
 }
