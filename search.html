@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buscar matrícula · Stellantis</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://p.trellocdn.com/power-up.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',system-ui,sans-serif;background:#f8fafc;color:#0f172a;font-size:13px;padding:16px}
+:root{
+  --navy:#0c1a35;--blue:#1d4ed8;--blue-l:#dbeafe;
+  --green:#059669;--green-l:#d1fae5;
+  --amber:#d97706;--amber-l:#fef3c7;
+  --red:#dc2626;--red-l:#fee2e2;
+  --border:#e2e8f0;--muted:#64748b;--bg:#f8fafc
+}
+input{font-family:inherit;border:2px solid var(--border);border-radius:8px;padding:10px 14px;font-size:15px;background:white;width:100%;outline:none;transition:border 0.15s;letter-spacing:0.06em;font-weight:700;text-transform:uppercase}
+input:focus{border-color:var(--blue)}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+.btn{border-radius:7px;padding:7px 14px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:var(--blue);color:white}
+.btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--border)}
+.btn-success{background:var(--green-l);color:var(--green);border:1.5px solid #6ee7b7}
+.btn-warn{background:var(--amber-l);color:var(--amber);border:1.5px solid #fbbf24}
+
+/* Search bar */
+.search-wrap{position:relative;margin-bottom:14px}
+.search-wrap input{padding-right:44px}
+.search-clear{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:18px;padding:4px}
+
+/* Result card */
+.result-card{background:white;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px;transition:border 0.15s}
+.result-card.urgente{border-color:#fbbf24}
+.result-card.muy-urgente{border-color:#fca5a5}
+.result-header{padding:12px 14px;display:flex;align-items:flex-start;gap:10px;border-bottom:1.5px solid var(--bg)}
+.result-matricula{font-family:'Courier New',monospace;font-weight:800;font-size:17px;color:var(--navy);letter-spacing:0.06em}
+.result-cliente{font-size:13px;font-weight:600;color:#0f172a;margin-top:1px}
+.result-vehiculo{font-size:11px;color:var(--muted)}
+.result-badge{margin-left:auto;flex-shrink:0}
+.badge{padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700;border:1.5px solid;white-space:nowrap}
+
+/* Detail grid */
+.detail-grid{padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.detail-item{}
+.detail-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px}
+.detail-value{font-size:13px;font-weight:600;color:#0f172a}
+
+/* Actions */
+.result-actions{padding:10px 14px;background:var(--bg);display:flex;gap:7px;flex-wrap:wrap}
+
+/* States */
+.empty-state{text-align:center;padding:40px 20px}
+.empty-icon{font-size:40px;margin-bottom:12px;color:#cbd5e1}
+.loading{text-align:center;padding:30px;color:var(--muted)}
+
+/* Status change */
+.status-picker{background:white;border:1.5px solid var(--border);border-radius:8px;padding:10px;margin-top:8px;display:none}
+.status-picker.open{display:block}
+.status-opt{padding:8px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;margin-bottom:4px;transition:background 0.1s}
+.status-opt:hover{background:var(--bg)}
+
+/* Alert */
+.alert{padding:10px 13px;border-radius:8px;font-size:12px;margin-bottom:12px}
+.alert-warn{background:var(--amber-l);border:1.5px solid #fbbf24;color:#92400e}
+.alert-ok{background:var(--green-l);border:1.5px solid #6ee7b7;color:#065f46}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:var(--navy)">Buscar pedido</div>
+      <div style="font-size:11px;color:var(--muted)">Escribe la matrícula para ver el estado</div>
+    </div>
+  </div>
+
+  <!-- Search input -->
+  <div class="search-wrap">
+    <input id="search-input" type="text" placeholder="Ej: 4413HYS" maxlength="10"
+      oninput="this.value=this.value.toUpperCase();onSearchInput()"
+      onkeydown="if(event.key==='Enter')doSearch()">
+    <button class="search-clear" onclick="clearSearch()" title="Limpiar">✕</button>
+  </div>
+
+  <div id="msg-area"></div>
+  <div id="results-area">
+    <div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <div style="font-weight:600;color:var(--muted);font-size:14px">Introduce una matrícula</div>
+      <div style="font-size:12px;color:#94a3b8;margin-top:4px">Busca entre todos los pedidos activos del tablero</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var t = TrelloPowerUp.iframe();
+var CFG_KEY = 'stellantis-config';
+
+var API_KEY   = 'a94def1efe06824418ef1ebc9bd12b4c';
+var API_TOKEN = 'ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
+var BOARD_ID  = 'QNEswrD1';
+
+var NEXT_STATUS = {
+  'SIN PEDIR':  'PENDIENTE',
+  'PENDIENTE':  'RECIBIDO',
+  'RECIBIDO':   'INSTALADO',
+  'INSTALADO':  null
+};
+
+var STATUS_STYLES = {
+  'SIN PEDIR': {color:'#475569',bg:'#f1f5f9',border:'#94a3b8'},
+  'PENDIENTE': {color:'#92400e',bg:'#fef3c7',border:'#f59e0b'},
+  'RECIBIDO':  {color:'#1e3a8a',bg:'#dbeafe',border:'#3b82f6'},
+  'INSTALADO': {color:'#065f46',bg:'#d1fae5',border:'#10b981'},
+};
+
+var PRIO_STYLES = {
+  'normal':      {color:'#065f46',bg:'#d1fae5',border:'#6ee7b7'},
+  'urgente':     {color:'#92400e',bg:'#fef3c7',border:'#fbbf24'},
+  'muy-urgente': {color:'#991b1b',bg:'#fee2e2',border:'#fca5a5'},
+};
+
+var searchTimeout = null;
+var allCards = null;  // cache
+
+function onSearchInput(){
+  clearTimeout(searchTimeout);
+  var q = document.getElementById('search-input').value.trim();
+  if(q.length < 2){ return; }
+  searchTimeout = setTimeout(doSearch, 350);
+}
+
+function clearSearch(){
+  document.getElementById('search-input').value = '';
+  document.getElementById('results-area').innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div style="font-weight:600;color:var(--muted);font-size:14px">Introduce una matrícula</div><div style="font-size:12px;color:#94a3b8;margin-top:4px">Busca entre todos los pedidos activos del tablero</div></div>';
+  document.getElementById('msg-area').innerHTML = '';
+  allCards = null;
+}
+
+function doSearch(){
+  var q = document.getElementById('search-input').value.trim().toUpperCase();
+  if(!q){ return; }
+
+  var area = document.getElementById('results-area');
+  area.innerHTML = '<div class="loading">Buscando...</div>';
+
+  // Load all cards if not cached
+  var fetchCards = allCards
+    ? Promise.resolve(allCards)
+    : fetch('https://api.trello.com/1/boards/'+BOARD_ID+'/cards?key='+API_KEY+'&token='+API_TOKEN+'&fields=id,name,desc,idList,due,dueComplete,dateLastActivity&pluginData=true')
+        .then(function(r){ return r.json(); })
+        .then(function(cards){
+          allCards = cards;
+          return cards;
+        });
+
+  fetchCards.then(function(cards){
+    // Filter cards that match the search query in their name
+    var matches = cards.filter(function(c){
+      return c.name.toUpperCase().indexOf(q) !== -1;
+    });
+
+    if(!matches.length){
+      area.innerHTML = '<div class="empty-state">'
+        +'<div class="empty-icon" style="font-size:32px">📭</div>'
+        +'<div style="font-weight:700;color:#0f172a;font-size:14px">Sin resultados para "'+q+'"</div>'
+        +'<div style="font-size:12px;color:#94a3b8;margin-top:4px">No hay pedidos activos con esa matrícula</div>'
+        +'</div>';
+      t.sizeTo('#app');
+      return;
+    }
+
+    // Load plugin data (pedido-data) for each matching card
+    Promise.all(matches.map(function(card){
+      return fetch('https://api.trello.com/1/cards/'+card.id+'/pluginData?key='+API_KEY+'&token='+API_TOKEN)
+        .then(function(r){ return r.json(); })
+        .then(function(pd){
+          var data = null;
+          pd.forEach(function(p){
+            try{ var v=JSON.parse(p.value); if(v['pedido-data']) data=v['pedido-data']; }catch(e){}
+          });
+          return { card:card, data:data };
+        }).catch(function(){ return {card:card, data:null}; });
+    })).then(function(results){
+      // Get list names
+      return fetch('https://api.trello.com/1/boards/'+BOARD_ID+'/lists?key='+API_KEY+'&token='+API_TOKEN+'&fields=id,name')
+        .then(function(r){ return r.json(); })
+        .then(function(lists){
+          var listMap = {};
+          lists.forEach(function(l){ listMap[l.id]=l.name; });
+          return {results:results, listMap:listMap};
+        });
+    }).then(function(d){
+      renderResults(d.results, d.listMap);
+    });
+  }).catch(function(err){
+    area.innerHTML = '<div class="alert alert-warn">Error al buscar: '+err.message+'</div>';
+  });
+}
+
+function renderResults(results, listMap){
+  var area = document.getElementById('results-area');
+  area.innerHTML = '';
+
+  var header = document.createElement('div');
+  header.style.cssText = 'font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px';
+  header.textContent = results.length + ' resultado' + (results.length!==1?'s':'') + ' encontrado' + (results.length!==1?'s':'');
+  area.appendChild(header);
+
+  results.forEach(function(r){
+    var card = r.card;
+    var data = r.data;
+    var fields = data ? (data.fields||{}) : {};
+    var priority = data ? (data.priority||'normal') : 'normal';
+    var listName = listMap[card.idList]||'—';
+
+    // Parse state from list name
+    var estado = 'SIN PEDIR';
+    var ln = listName.toUpperCase();
+    if(ln.indexOf('TRÁNSITO')!==-1||ln.indexOf('TRANSITO')!==-1||ln.indexOf('PENDIENTE')!==-1) estado='PENDIENTE';
+    if(ln.indexOf('CITA')!==-1||ln.indexOf('AVISADO')!==-1||ln.indexOf('TALLER')!==-1||ln.indexOf('TRÁNSITO')!==-1) estado='RECIBIDO';
+    if(ln.indexOf('ENTREGADO')!==-1||ln.indexOf('INSTALADO')!==-1) estado='INSTALADO';
+    if(ln.indexOf('PEDIDOS')===0) estado='SIN PEDIR';
+
+    var ss = STATUS_STYLES[estado]||STATUS_STYLES['SIN PEDIR'];
+    var ps = PRIO_STYLES[priority]||PRIO_STYLES['normal'];
+
+    // Parse card name: [AIRBAG] - MATRICULA - MARCA MODELO - CLIENTE - PEDIDO POR NOMBRE
+    var parts = card.name.split(' - ');
+    var matricula = parts[1]||(fields.matricula||'—');
+    var cliente   = fields.cliente||(parts[3]||'—');
+    var vehiculo  = fields.marca?(fields.marca+(fields.modelo?' '+fields.modelo:'')):(parts[2]||'—');
+    var pedidoPor = fields.pedidoPor||(parts[4]?parts[4].replace('PEDIDO POR ',''):'—');
+    var tipo      = data?data.template:'—';
+    var fechaCita = fields.fecha_cita||'Sin cita';
+    var notas     = fields.notas||'';
+
+    // Days in state
+    var daysAgo = Math.floor((Date.now()-new Date(card.dateLastActivity).getTime())/864e5);
+
+    // Due date status
+    var dueStr = '—';
+    var dueColor = '';
+    if(card.due){
+      var due = new Date(card.due);
+      var diff = Math.floor((due-Date.now())/864e5);
+      if(card.dueComplete){ dueStr='Completada'; dueColor='#059669'; }
+      else if(diff<0){ dueStr='Vencida hace '+(Math.abs(diff))+'d'; dueColor='#dc2626'; }
+      else if(diff===0){ dueStr='Hoy'; dueColor='#d97706'; }
+      else if(diff===1){ dueStr='Mañana'; dueColor='#d97706'; }
+      else { dueStr=due.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'}); }
+    }
+
+    var cardEl = document.createElement('div');
+    cardEl.className='result-card'+(priority==='muy-urgente'?' muy-urgente':priority==='urgente'?' urgente':'');
+    cardEl.innerHTML=
+      '<div class="result-header">'
+      +'<div style="flex:1">'
+      +'<div class="result-matricula">'+matricula+'</div>'
+      +'<div class="result-cliente">'+cliente+'</div>'
+      +'<div class="result-vehiculo">'+vehiculo+'</div>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'
+      +'<span class="badge" style="color:'+ss.color+';background:'+ss.bg+';border-color:'+ss.border+'">'+estado+'</span>'
+      +'<span class="badge" style="color:'+ps.color+';background:'+ps.bg+';border-color:'+ps.border+'">'+(priority==='normal'?'NORMAL':priority==='urgente'?'URGENTE':'MUY URGENTE')+'</span>'
+      +'</div>'
+      +'</div>'
+      +'<div class="detail-grid">'
+      +'<div class="detail-item"><div class="detail-label">Lista actual</div><div class="detail-value" style="font-size:11px">'+listName+'</div></div>'
+      +'<div class="detail-item"><div class="detail-label">Fecha cita</div><div class="detail-value" style="'+(dueColor?'color:'+dueColor:'')+'">'+dueStr+'</div></div>'
+      +'<div class="detail-item"><div class="detail-label">Pedido por</div><div class="detail-value">'+pedidoPor+'</div></div>'
+      +'<div class="detail-item"><div class="detail-label">Días sin mover</div><div class="detail-value" style="'+(daysAgo>5?'color:#dc2626':'')+'">'+daysAgo+' día'+(daysAgo!==1?'s':'')+'</div></div>'
+      +(notas?'<div class="detail-item" style="grid-column:1/-1"><div class="detail-label">Notas</div><div class="detail-value" style="font-size:12px;font-weight:400">'+notas+'</div></div>':'')
+      +'</div>'
+      +'<div class="result-actions">'
+      +'<a href="https://trello.com/c/'+card.id+'" target="_blank" class="btn btn-ghost">Abrir tarjeta</a>'
+      +(NEXT_STATUS[estado]?'<button class="btn btn-success" onclick="showStatusPicker(\''+card.id+'\',\''+estado+'\',this)">Avanzar estado</button>':'')
+      +'</div>'
+      +'<div id="picker-'+card.id+'" class="status-picker"></div>';
+
+    area.appendChild(cardEl);
+  });
+
+  t.sizeTo('#app');
+}
+
+function showStatusPicker(cardId, currentStatus, btn){
+  var picker = document.getElementById('picker-'+cardId);
+  if(picker.classList.contains('open')){
+    picker.classList.remove('open');
+    picker.innerHTML='';
+    return;
+  }
+  var next = NEXT_STATUS[currentStatus];
+  if(!next) return;
+
+  var ss = STATUS_STYLES[next];
+  picker.innerHTML='<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">Confirmar cambio de estado</div>'
+    +'<div style="font-size:13px;margin-bottom:10px">¿Mover a <b>'+next+'</b>?</div>'
+    +'<div style="display:flex;gap:7px">'
+    +'<button class="btn btn-success" onclick="changeStatus(\''+cardId+'\',\''+next+'\')">Confirmar</button>'
+    +'<button class="btn btn-ghost" onclick="document.getElementById(\'picker-'+cardId+'\').classList.remove(\'open\')">Cancelar</button>'
+    +'</div>';
+  picker.classList.add('open');
+  t.sizeTo('#app');
+}
+
+function changeStatus(cardId, newStatus){
+  // Load config to get correct list mapping
+  t.get('board','shared',CFG_KEY).then(function(cfg){
+    var listId = null;
+    if(cfg && cfg.lists){
+      if(newStatus==='PENDIENTE')  listId=cfg.lists.PENDIENTE;
+      if(newStatus==='RECIBIDO')   listId=cfg.lists.RECIBIDO_CON_CITA;
+      if(newStatus==='INSTALADO')  listId=cfg.lists.INSTALADO;
+    }
+    // Fallback hardcoded
+    if(!listId){
+      var fallback={
+        'PENDIENTE': '68a4531b010b18274c39d3a9',
+        'RECIBIDO':  '68a6d0d6a3dc70045ddd13ee',
+        'INSTALADO': '69398a369afd8d4d2f14bded',
+      };
+      listId=fallback[newStatus];
+    }
+    if(!listId){ alert('No se encontró la lista para ese estado'); return; }
+
+    return fetch('https://api.trello.com/1/cards/'+cardId+'?key='+API_KEY+'&token='+API_TOKEN,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({idList:listId})
+    });
+  }).then(function(){
+    var picker=document.getElementById('picker-'+cardId);
+    if(picker){ picker.classList.remove('open'); picker.innerHTML=''; }
+    showMsg('Estado actualizado correctamente','ok');
+    allCards=null; // invalidate cache
+    setTimeout(doSearch, 500);
+  }).catch(function(err){
+    showMsg('Error al cambiar estado: '+err.message,'warn');
+  });
+}
+
+function showMsg(text, type){
+  var area = document.getElementById('msg-area');
+  area.innerHTML='<div class="alert alert-'+type+'">'+text+'</div>';
+  setTimeout(function(){ area.innerHTML=''; }, 3000);
+}
+
+// Auto-focus search on load
+window.addEventListener('load', function(){
+  document.getElementById('search-input').focus();
+  t.sizeTo('#app');
+});
+</script>
+</body>
+</html>

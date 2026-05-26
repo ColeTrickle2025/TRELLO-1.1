@@ -38,13 +38,25 @@ TrelloPowerUp.initialize({
       },
       {
         icon: { dark: ICON_URL, light: ICON_URL },
-        text: 'Configurar API',
+        text: 'Buscar matrícula',
         callback: function(t) {
           return t.modal({
-            url:    BASE_URL + 'modal.html?mode=settings',
-            title:  'Configuración · API Key y Token',
-            height: 440,
+            url:    BASE_URL + 'search.html',
+            title:  'Buscar pedido',
+            height: 520,
             fullscreen: false
+          });
+        }
+      },
+      {
+        icon: { dark: ICON_URL, light: ICON_URL },
+        text: 'Configuración',
+        callback: function(t) {
+          return t.modal({
+            url:    BASE_URL + 'settings.html',
+            title:  'Configuración · Stellantis Recambios',
+            height: 580,
+            fullscreen: true
           });
         }
       }
@@ -79,13 +91,41 @@ TrelloPowerUp.initialize({
     };
   },
 
+  /* ── Botón en el menú (···) de cada lista ── */
+  'list-actions': function(t) {
+    return [
+      {
+        text: 'Nueva Solicitud de Recambios',
+        callback: function(t) {
+          return t.modal({
+            url:    BASE_URL + 'modal.html?mode=new-request',
+            title:  'Nueva Solicitud de Recambios',
+            height: 620,
+            fullscreen: false
+          });
+        }
+      },
+      {
+        text: 'Buscar matrícula',
+        callback: function(t) {
+          return t.modal({
+            url:    BASE_URL + 'search.html',
+            title:  'Buscar pedido',
+            height: 520,
+            fullscreen: false
+          });
+        }
+      }
+    ];
+  },
+
   /* ── Settings (por si funciona desde el menú) ── */
   'show-settings': function(t) {
     return t.modal({
-      url:    BASE_URL + 'modal.html?mode=settings',
-      title:  'Configuración · API Key y Token',
-      height: 440,
-      fullscreen: false
+      url:    BASE_URL + 'settings.html',
+      title:  'Configuración · Stellantis Recambios',
+      height: 580,
+      fullscreen: true
     });
   }
 

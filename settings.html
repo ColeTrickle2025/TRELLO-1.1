@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuración · Stellantis Recambios</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://p.trellocdn.com/power-up.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',system-ui,sans-serif;background:#f8fafc;color:#0f172a;font-size:13px}
+:root{
+  --navy:#0c1a35;--blue:#1d4ed8;--blue-l:#dbeafe;
+  --green:#059669;--green-l:#d1fae5;
+  --amber:#d97706;--amber-l:#fef3c7;
+  --red:#dc2626;--red-l:#fee2e2;
+  --border:#e2e8f0;--muted:#64748b;--bg:#f8fafc
+}
+input,select,textarea{font-family:inherit;border:1.5px solid var(--border);border-radius:7px;padding:7px 11px;font-size:13px;background:white;width:100%;outline:none;transition:border 0.15s}
+input:focus,select:focus{border-color:var(--blue)}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+
+/* ── Layout ── */
+.wrap{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:180px;background:var(--navy);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-header{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,0.1)}
+.sidebar-title{font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:white;letter-spacing:-0.01em}
+.sidebar-sub{font-size:10px;color:#93c5fd;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px}
+.nav-item{padding:10px 16px;cursor:pointer;font-size:12px;font-weight:600;color:#94a3b8;display:flex;align-items:center;gap:8px;transition:all 0.15s;border-left:3px solid transparent}
+.nav-item:hover{color:white;background:rgba(255,255,255,0.06)}
+.nav-item.active{color:white;background:rgba(255,255,255,0.1);border-left-color:#3b82f6}
+.nav-icon{font-size:14px;width:18px;text-align:center}
+.content{flex:1;overflow-y:auto;padding:20px}
+.panel{display:none}
+.panel.active{display:block}
+
+/* ── Cards & Fields ── */
+.card{background:white;border:1.5px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px}
+.card-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+
+/* ── Buttons ── */
+.btn{border-radius:7px;padding:7px 14px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px;transition:all 0.15s;cursor:pointer}
+.btn-primary{background:var(--blue);color:white;border:none}
+.btn-primary:hover{background:#1e40af}
+.btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--border)}
+.btn-ghost:hover{background:var(--bg)}
+.btn-danger{background:var(--red-l);color:var(--red);border:1.5px solid #fca5a5}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-success{background:var(--green-l);color:var(--green);border:1.5px solid #6ee7b7}
+
+/* ── Toggle switch ── */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bg)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{font-size:13px;font-weight:600;color:#0f172a}
+.toggle-desc{font-size:11px;color:var(--muted);margin-top:1px}
+.toggle{position:relative;width:36px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:#cbd5e1;border-radius:99px;transition:0.2s;cursor:pointer}
+.slider:before{content:"";position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.2s}
+input:checked+.slider{background:var(--blue)}
+input:checked+.slider:before{transform:translateX(16px)}
+
+/* ── Staff list ── */
+.staff-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg);border-radius:7px;margin-bottom:6px}
+.staff-name{flex:1;font-weight:600;font-size:13px}
+.staff-add{display:flex;gap:8px;margin-top:10px}
+
+/* ── List mapper ── */
+.map-row{display:grid;grid-template-columns:130px 1fr;align-items:center;gap:10px;margin-bottom:8px}
+.status-badge{padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;text-align:center}
+
+/* ── Alerts ── */
+.alert{padding:10px 13px;border-radius:8px;font-size:12px;margin-bottom:12px;font-weight:500}
+.alert-ok{background:var(--green-l);border:1.5px solid #6ee7b7;color:#065f46}
+.alert-warn{background:var(--amber-l);border:1.5px solid #fbbf24;color:#92400e}
+.alert-info{background:var(--blue-l);border:1.5px solid #93c5fd;color:#1e3a8a}
+
+/* ── Footer save bar ── */
+.save-bar{position:sticky;bottom:0;background:white;border-top:1.5px solid var(--border);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin:0 -20px -20px}
+.save-status{font-size:12px;color:var(--muted);font-weight:500}
+
+/* ── Days input ── */
+.days-row{display:flex;align-items:center;gap:10px;margin-top:8px}
+.days-row input[type=number]{width:70px}
+.days-row span{font-size:12px;color:var(--muted);white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">STELLANTIS</div>
+      <div class="sidebar-sub">Configuración</div>
+    </div>
+    <nav id="nav" style="margin-top:8px">
+      <div class="nav-item active" data-panel="equipo">
+        <span class="nav-icon">👥</span> Equipo
+      </div>
+      <div class="nav-item" data-panel="badges">
+        <span class="nav-icon">🏷</span> Badges
+      </div>
+      <div class="nav-item" data-panel="listas">
+        <span class="nav-icon">📋</span> Listas
+      </div>
+      <div class="nav-item" data-panel="plantillas">
+        <span class="nav-icon">📄</span> Plantillas
+      </div>
+      <div class="nav-item" data-panel="credenciales">
+        <span class="nav-icon">🔑</span> Credenciales
+      </div>
+    </nav>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- EQUIPO -->
+    <div class="panel active" id="panel-equipo">
+      <div class="card-title" style="font-size:15px;font-weight:800;font-family:'Syne',sans-serif;color:#0f172a;margin-bottom:16px;text-transform:none;letter-spacing:0">Gestión del Equipo</div>
+      <div class="card">
+        <div class="card-title">Personal del taller</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Estos nombres aparecerán en el selector "¿Quién eres?" al crear una solicitud.</div>
+        <div id="staff-list"></div>
+        <div class="staff-add">
+          <input id="new-staff-name" type="text" placeholder="Nombre completo" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+          <button class="btn btn-primary btn-sm" onclick="addStaff()" style="white-space:nowrap">+ Añadir</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BADGES -->
+    <div class="panel" id="panel-badges">
+      <div class="card-title" style="font-size:15px;font-weight:800;font-family:'Syne',sans-serif;color:#0f172a;margin-bottom:16px;text-transform:none;letter-spacing:0">Badges en tarjetas</div>
+      <div class="card">
+        <div class="card-title">Visibles en el frontal de cada tarjeta</div>
+        <div id="badges-list">
+          <div class="toggle-row">
+            <div><div class="toggle-label">Prioridad</div><div class="toggle-desc">Normal / Urgente / Muy urgente con color</div></div>
+            <label class="toggle"><input type="checkbox" id="badge-prioridad" checked><span class="slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Fecha de cita</div><div class="toggle-desc">Cambia a rojo cuando vence</div></div>
+            <label class="toggle"><input type="checkbox" id="badge-fecha" checked><span class="slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Tipo de pedido</div><div class="toggle-desc">Airbag / Neumáticos / Pedido General</div></div>
+            <label class="toggle"><input type="checkbox" id="badge-tipo" checked><span class="slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Pedido por</div><div class="toggle-desc">Nombre de quien creó la solicitud</div></div>
+            <label class="toggle"><input type="checkbox" id="badge-quien" checked><span class="slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Días en estado</div><div class="toggle-desc">Cuántos días lleva sin cambiar de estado</div></div>
+            <label class="toggle"><input type="checkbox" id="badge-dias"><span class="slider"></span></label>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Alertas por fecha de cita</div>
+        <div class="toggle-row" style="border:none;padding:0 0 10px">
+          <div><div class="toggle-label">Activar alertas de color</div></div>
+          <label class="toggle"><input type="checkbox" id="badge-alertas" checked><span class="slider"></span></label>
+        </div>
+        <div class="days-row">
+          <span>Amarillo cuando faltan menos de</span>
+          <input type="number" id="dias-amarillo" value="3" min="1" max="30">
+          <span>días</span>
+        </div>
+        <div class="days-row">
+          <span>Rojo cuando faltan menos de</span>
+          <input type="number" id="dias-rojo" value="1" min="0" max="7">
+          <span>días o ya venció</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTAS -->
+    <div class="panel" id="panel-listas">
+      <div class="card-title" style="font-size:15px;font-weight:800;font-family:'Syne',sans-serif;color:#0f172a;margin-bottom:16px;text-transform:none;letter-spacing:0">Mapeo de Listas</div>
+      <div class="card">
+        <div class="card-title">Estado → Lista de Trello</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Asigna cada estado a una lista de tu tablero. Cuando cambies el estado en Sheets, la tarjeta se moverá a esta lista.</div>
+        <div id="list-mapper">
+          <div style="font-size:12px;color:var(--muted);text-align:center;padding:20px">Cargando listas del tablero...</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Lógica especial — Estado RECIBIDO</div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Con fecha de cita → CON CITA</div><div class="toggle-desc">Si el vehículo tiene fecha asignada, va a la lista "Con Cita"</div></div>
+          <label class="toggle"><input type="checkbox" id="logic-recibido-cita" checked><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Sin fecha → En tránsito</div><div class="toggle-desc">Si no tiene cita, va a la lista de tránsito hasta asignarla</div></div>
+          <label class="toggle"><input type="checkbox" id="logic-recibido-notrans" checked><span class="slider"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLANTILLAS -->
+    <div class="panel" id="panel-plantillas">
+      <div class="card-title" style="font-size:15px;font-weight:800;font-family:'Syne',sans-serif;color:#0f172a;margin-bottom:16px;text-transform:none;letter-spacing:0">Plantillas de Solicitud</div>
+      <div class="card">
+        <div class="card-title">Plantillas activas</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Desactiva las que no uses — no aparecerán al crear una nueva solicitud.</div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Airbag / Campaña</div><div class="toggle-desc">Recall y campaña de airbags Stellantis</div></div>
+          <label class="toggle"><input type="checkbox" id="tpl-airbag" checked><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Neumáticos</div><div class="toggle-desc">Pedido de neumáticos y llantas</div></div>
+          <label class="toggle"><input type="checkbox" id="tpl-neumaticos" checked><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Pedido General</div><div class="toggle-desc">Piezas, repuestos y material diverso</div></div>
+          <label class="toggle"><input type="checkbox" id="tpl-general" checked><span class="slider"></span></label>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Opciones del formulario</div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Fecha de cita obligatoria</div><div class="toggle-desc">No se puede crear sin fecha o marcar "Sin cita"</div></div>
+          <label class="toggle"><input type="checkbox" id="form-cita-required" checked><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Validar formato matrícula</div><div class="toggle-desc">Solo acepta matrículas con formato español válido</div></div>
+          <label class="toggle"><input type="checkbox" id="form-matricula-val" checked><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Detectar duplicados</div><div class="toggle-desc">Avisa si ya existe una tarjeta con esa matrícula</div></div>
+          <label class="toggle"><input type="checkbox" id="form-duplicados" checked><span class="slider"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREDENCIALES -->
+    <div class="panel" id="panel-credenciales">
+      <div class="card-title" style="font-size:15px;font-weight:800;font-family:'Syne',sans-serif;color:#0f172a;margin-bottom:16px;text-transform:none;letter-spacing:0">Credenciales y Conexiones</div>
+      <div class="card">
+        <div class="card-title">API Trello</div>
+        <div class="alert alert-info">Obtén tus credenciales en <a href="https://trello.com/app-key" target="_blank" style="color:var(--blue);font-weight:700">trello.com/app-key</a></div>
+        <div class="field"><label>API Key</label><input id="cred-key" type="text" placeholder="Pega tu API Key"></div>
+        <div class="field"><label>Token</label><input id="cred-token" type="password" placeholder="Pega tu Token"></div>
+        <button class="btn btn-ghost btn-sm" onclick="testCredentials()">Verificar conexión</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Google Sheets — Web App</div>
+        <div class="alert alert-info">URL del Apps Script desplegado como Web App</div>
+        <div class="field"><label>URL del Web App</label><input id="cred-webapp" type="text" placeholder="https://script.google.com/macros/s/.../exec"></div>
+        <button class="btn btn-ghost btn-sm" onclick="testWebApp()">Verificar conexión</button>
+      </div>
+      <div id="cred-msg"></div>
+    </div>
+
+    <!-- SAVE BAR -->
+    <div class="save-bar">
+      <span class="save-status" id="save-status">Sin cambios pendientes</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="t.closeModal()">Cerrar</button>
+        <button class="btn btn-primary" onclick="saveAll()">Guardar cambios</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /wrap -->
+
+<script>
+var t = TrelloPowerUp.iframe();
+
+// ── Config keys stored in Trello board shared scope ──────────────────────
+var CFG_KEY = 'stellantis-config';
+
+// ── Default config ───────────────────────────────────────────────────────
+var DEFAULT_CONFIG = {
+  staff: ['JOAN ALVAREZ','MIRIAM ALVAREZ','JORDI F.','J. OLIVER','RAUL','CHARLY'],
+  badges: { prioridad:true, fecha:true, tipo:true, quien:true, dias:false, alertas:true },
+  diasAmarillo: 3,
+  diasRojo: 1,
+  templates: { airbag:true, neumaticos:true, general:true },
+  form: { citaRequired:true, matriculaVal:true, duplicados:true },
+  logic: { recibidoCita:true, recibidoTransit:true },
+  lists: {
+    SIN_PEDIR: '68a4531b010b18274c39d3a8',
+    PENDIENTE: '68a4531b010b18274c39d3a9',
+    RECIBIDO_CON_CITA: '68a6d0d6a3dc70045ddd13ee',
+    RECIBIDO_SIN_CITA: '68a4531b010b18274c39d3a9',
+    INSTALADO: '69398a369afd8d4d2f14bded',
+  },
+  credentials: { key:'a94def1efe06824418ef1ebc9bd12b4c', token:'', webapp:'' }
+};
+
+var config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+var boardLists = [];
+var hasChanges = false;
+
+// ── Navigation ────────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(function(item){
+  item.addEventListener('click', function(){
+    document.querySelectorAll('.nav-item').forEach(function(i){i.classList.remove('active');});
+    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+    item.classList.add('active');
+    document.getElementById('panel-'+item.dataset.panel).classList.add('active');
+    if(item.dataset.panel === 'listas') loadBoardLists();
+  });
+});
+
+// ── Load config from Trello ───────────────────────────────────────────────
+function loadConfig() {
+  t.get('board','shared', CFG_KEY).then(function(saved){
+    if(saved) {
+      // Merge saved over defaults to keep new keys
+      config = deepMerge(DEFAULT_CONFIG, saved);
+    }
+    applyConfigToUI();
+  }).catch(function(){
+    applyConfigToUI();
+  });
+}
+
+function deepMerge(base, override) {
+  var result = JSON.parse(JSON.stringify(base));
+  Object.keys(override).forEach(function(k){
+    if(typeof override[k] === 'object' && !Array.isArray(override[k]) && override[k] !== null) {
+      result[k] = deepMerge(base[k]||{}, override[k]);
+    } else {
+      result[k] = override[k];
+    }
+  });
+  return result;
+}
+
+// ── Apply config to UI ────────────────────────────────────────────────────
+function applyConfigToUI() {
+  // Staff
+  renderStaffList();
+
+  // Badges
+  setChk('badge-prioridad', config.badges.prioridad);
+  setChk('badge-fecha',     config.badges.fecha);
+  setChk('badge-tipo',      config.badges.tipo);
+  setChk('badge-quien',     config.badges.quien);
+  setChk('badge-dias',      config.badges.dias);
+  setChk('badge-alertas',   config.badges.alertas);
+  setVal('dias-amarillo',   config.diasAmarillo);
+  setVal('dias-rojo',       config.diasRojo);
+
+  // Templates
+  setChk('tpl-airbag',      config.templates.airbag);
+  setChk('tpl-neumaticos',  config.templates.neumaticos);
+  setChk('tpl-general',     config.templates.general);
+
+  // Form options
+  setChk('form-cita-required',  config.form.citaRequired);
+  setChk('form-matricula-val',  config.form.matriculaVal);
+  setChk('form-duplicados',     config.form.duplicados);
+
+  // Logic
+  setChk('logic-recibido-cita',   config.logic.recibidoCita);
+  setChk('logic-recibido-notrans',config.logic.recibidoTransit);
+
+  // Credentials
+  setVal('cred-key',    config.credentials.key||'');
+  setVal('cred-token',  config.credentials.token||'');
+  setVal('cred-webapp', config.credentials.webapp||'');
+
+  // Track changes
+  document.querySelectorAll('input').forEach(function(inp){
+    inp.addEventListener('change', markChanged);
+    inp.addEventListener('input', markChanged);
+  });
+}
+
+function setChk(id, val){ var el=document.getElementById(id); if(el) el.checked=!!val; }
+function setVal(id, val){ var el=document.getElementById(id); if(el) el.value=val||''; }
+function getChk(id){ var el=document.getElementById(id); return el?el.checked:false; }
+function getVal(id){ var el=document.getElementById(id); return el?el.value.trim():''; }
+
+function markChanged(){
+  hasChanges=true;
+  document.getElementById('save-status').textContent='Cambios sin guardar...';
+  document.getElementById('save-status').style.color='#d97706';
+}
+
+// ── Staff management ──────────────────────────────────────────────────────
+function renderStaffList() {
+  var list = document.getElementById('staff-list');
+  list.innerHTML = '';
+  (config.staff||[]).forEach(function(name, i){
+    var div = document.createElement('div');
+    div.className = 'staff-item';
+    div.innerHTML = '<span class="staff-name">'+name+'</span>'
+      +'<button class="btn btn-danger btn-sm" onclick="removeStaff('+i+')">Eliminar</button>';
+    list.appendChild(div);
+  });
+  if(!config.staff||!config.staff.length){
+    list.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0">Sin personal añadido</div>';
+  }
+}
+
+function addStaff(){
+  var inp = document.getElementById('new-staff-name');
+  var name = inp.value.trim().toUpperCase();
+  if(!name) return;
+  if(!config.staff) config.staff=[];
+  if(config.staff.indexOf(name)!==-1){ alert('Ese nombre ya está en la lista'); return; }
+  config.staff.push(name);
+  inp.value='';
+  renderStaffList();
+  markChanged();
+}
+
+function removeStaff(i){
+  if(!confirm('¿Eliminar a '+config.staff[i]+'?')) return;
+  config.staff.splice(i,1);
+  renderStaffList();
+  markChanged();
+}
+
+// ── Load and render board lists ───────────────────────────────────────────
+function loadBoardLists(){
+  var mapper = document.getElementById('list-mapper');
+  if(boardLists.length){ renderListMapper(); return; }
+  mapper.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:20px">Cargando...</div>';
+
+  var key = config.credentials.key || getVal('cred-key');
+  var tok = config.credentials.token || getVal('cred-token');
+  var boardId = 'QNEswrD1';
+
+  fetch('https://api.trello.com/1/boards/'+boardId+'/lists?key='+key+'&token='+tok+'&filter=open')
+  .then(function(r){ return r.json(); })
+  .then(function(lists){
+    boardLists = lists;
+    renderListMapper();
+  }).catch(function(){
+    mapper.innerHTML='<div class="alert alert-warn">No se pudieron cargar las listas. Verifica las credenciales.</div>';
+  });
+}
+
+var STATUS_LABELS = [
+  {key:'SIN_PEDIR',         label:'Sin Pedir',       color:'#475569',bg:'#f1f5f9',border:'#94a3b8'},
+  {key:'PENDIENTE',         label:'Pendiente',        color:'#92400e',bg:'#fef3c7',border:'#f59e0b'},
+  {key:'RECIBIDO_CON_CITA', label:'Recibido (con cita)',color:'#1e3a8a',bg:'#dbeafe',border:'#3b82f6'},
+  {key:'RECIBIDO_SIN_CITA', label:'Recibido (sin cita)',color:'#5b21b6',bg:'#ede9fe',border:'#8b5cf6'},
+  {key:'INSTALADO',         label:'Instalado',        color:'#065f46',bg:'#d1fae5',border:'#10b981'},
+];
+
+function renderListMapper(){
+  var mapper = document.getElementById('list-mapper');
+  mapper.innerHTML = '';
+  STATUS_LABELS.forEach(function(s){
+    var row = document.createElement('div');
+    row.className = 'map-row';
+    var badge = '<span class="status-badge" style="color:'+s.color+';background:'+s.bg+';border:1.5px solid '+s.border+'">'+s.label+'</span>';
+    var sel = '<select id="map-'+s.key+'" onchange="markChanged()">';
+    sel += '<option value="">— Sin asignar —</option>';
+    boardLists.forEach(function(l){
+      var selected = (config.lists[s.key]===l.id) ? ' selected' : '';
+      sel += '<option value="'+l.id+'"'+selected+'>'+l.name+'</option>';
+    });
+    sel += '</select>';
+    row.innerHTML = badge + sel;
+    mapper.appendChild(row);
+  });
+}
+
+// ── Collect config from UI ────────────────────────────────────────────────
+function collectConfig(){
+  config.badges = {
+    prioridad: getChk('badge-prioridad'),
+    fecha:     getChk('badge-fecha'),
+    tipo:      getChk('badge-tipo'),
+    quien:     getChk('badge-quien'),
+    dias:      getChk('badge-dias'),
+    alertas:   getChk('badge-alertas'),
+  };
+  config.diasAmarillo = parseInt(getVal('dias-amarillo'))||3;
+  config.diasRojo     = parseInt(getVal('dias-rojo'))||1;
+  config.templates = {
+    airbag:     getChk('tpl-airbag'),
+    neumaticos: getChk('tpl-neumaticos'),
+    general:    getChk('tpl-general'),
+  };
+  config.form = {
+    citaRequired:  getChk('form-cita-required'),
+    matriculaVal:  getChk('form-matricula-val'),
+    duplicados:    getChk('form-duplicados'),
+  };
+  config.logic = {
+    recibidoCita:   getChk('logic-recibido-cita'),
+    recibidoTransit:getChk('logic-recibido-notrans'),
+  };
+  config.credentials = {
+    key:    getVal('cred-key'),
+    token:  getVal('cred-token'),
+    webapp: getVal('cred-webapp'),
+  };
+  // List mappings
+  STATUS_LABELS.forEach(function(s){
+    var sel = document.getElementById('map-'+s.key);
+    if(sel) config.lists[s.key] = sel.value;
+  });
+}
+
+// ── Save ──────────────────────────────────────────────────────────────────
+function saveAll(){
+  collectConfig();
+  var statusEl = document.getElementById('save-status');
+  statusEl.textContent = 'Guardando...';
+  statusEl.style.color = 'var(--muted)';
+
+  t.set('board','shared', CFG_KEY, config)
+  .then(function(){
+    hasChanges = false;
+    statusEl.textContent = '✓ Guardado correctamente';
+    statusEl.style.color = '#059669';
+    setTimeout(function(){
+      statusEl.textContent = 'Sin cambios pendientes';
+      statusEl.style.color = 'var(--muted)';
+    }, 2500);
+  }).catch(function(err){
+    statusEl.textContent = '❌ Error al guardar: '+err.message;
+    statusEl.style.color = '#dc2626';
+  });
+}
+
+// ── Verify credentials ────────────────────────────────────────────────────
+function testCredentials(){
+  var key = getVal('cred-key');
+  var tok = getVal('cred-token');
+  var msg = document.getElementById('cred-msg');
+  if(!key||!tok){ msg.innerHTML='<div class="alert alert-warn">Introduce el API Key y Token primero</div>'; return; }
+  msg.innerHTML='<div class="alert alert-info">Verificando...</div>';
+  fetch('https://api.trello.com/1/members/me?key='+key+'&token='+tok+'&fields=fullName,username')
+  .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(function(m){
+    msg.innerHTML='<div class="alert alert-ok">✓ Conectado como: <b>'+m.fullName+'</b> (@'+m.username+')</div>';
+  }).catch(function(e){
+    msg.innerHTML='<div class="alert alert-warn">❌ Error: '+e.message+'. Verifica las credenciales.</div>';
+  });
+}
+
+function testWebApp(){
+  var url = getVal('cred-webapp');
+  var msg = document.getElementById('cred-msg');
+  if(!url){ msg.innerHTML='<div class="alert alert-warn">Introduce la URL del Web App primero</div>'; return; }
+  msg.innerHTML='<div class="alert alert-info">Verificando...</div>';
+  fetch(url+'?test=1')
+  .then(function(){
+    msg.innerHTML='<div class="alert alert-ok">✓ Web App de Google Sheets accesible</div>';
+  }).catch(function(){
+    msg.innerHTML='<div class="alert alert-warn">⚠️ No se pudo verificar. Puede ser normal por CORS — intenta guardar y crear una tarjeta de prueba.</div>';
+  });
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+loadConfig();
+</script>
+</body>
+</html>
