@@ -186,6 +186,18 @@ var TEMPLATES={
 
 /* ── state ── */
 // ── Lista de personas del taller — editar con los nombres reales ────────
+// Etiquetas de Trello por marca — IDs reales del tablero
+var BRAND_LABELS={
+  'Peugeot':        '68a4531b010b18274c39d39e',
+  'Citroën':        '68a4531b010b18274c39d3a3',
+  'Opel':           '6a169a13d3523f3260977f29',
+  'Fiat':           '6a169a22cfba84fda70808ab',
+  'DS Automobiles': '6a169a3fedbf39f90ebaf908',
+  'Abarth':         '6a169a538634e946cdc1e40b',
+  'Jeep':           '6a169a5caa8c50e6aba364a2',
+  'Otro':           '6a169a67c1d226fa846f25ef',
+};
+
 var STAFF=[
   'JOAN ALVAREZ',
   'MIRIAM ALVAREZ',
@@ -579,6 +591,10 @@ function createCard(){
       pos: 'top'
     };
     if(dueDate) payload.due=dueDate;
+
+    // Añadir etiqueta de color según la marca seleccionada
+    var labelId=BRAND_LABELS[v.marca||''];
+    if(labelId) payload.idLabels=[labelId];
 
     return fetch('https://api.trello.com/1/cards?key='+encodeURIComponent(API_KEY)+'&token='+encodeURIComponent(API_TOKEN),{
     method:'POST',
