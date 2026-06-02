@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mover tarjeta</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://p.trellocdn.com/power-up.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',system-ui,sans-serif;background:#f8fafc;color:#0f172a;font-size:13px;padding:16px}
+:root{--blue:#1d4ed8;--blue-l:#dbeafe;--green:#059669;--green-l:#d1fae5;--border:#e2e8f0;--muted:#64748b;--bg:#f8fafc}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+.btn{border-radius:7px;padding:8px 16px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s}
+.btn-primary{background:var(--blue);color:white}
+.btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--border)}
+.staff-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:16px}
+.staff-btn{background:white;border:2px solid var(--border);border-radius:10px;padding:10px;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:inherit;transition:all 0.15s;text-align:left}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0}
+.name-text{font-size:11px;font-weight:700;color:#0f172a;line-height:1.2}
+.footer{display:flex;gap:8px;justify-content:flex-end;padding-top:14px;border-top:1.5px solid var(--border);margin-top:4px}
+</style>
+</head>
+<body>
+<div id="app"><div style="text-align:center;padding:30px;color:#94a3b8;font-size:12px">Cargando...</div></div>
+<script>
+var t = TrelloPowerUp.iframe();
+var CFG_KEY = 'stellantis-config';
+var API_KEY   = 'a94def1efe06824418ef1ebc9bd12b4c';
+var API_TOKEN = 'ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
+
+var params   = new URLSearchParams(window.location.search);
+var listId   = params.get('listId')   || '';
+var listName = params.get('listName') || 'Lista';
+
+var selectedUser = '';
+
+function getInitials(n){
+  var p=n.trim().split(' ');
+  return p.length>=2?(p[0][0]+p[p.length-1][0]).toUpperCase():n.substring(0,2).toUpperCase();
+}
+function getColor(n){
+  var c=['#1d4ed8','#7c3aed','#059669','#d97706','#dc2626','#0369a1','#065f46','#92400e'];
+  var i=0; for(var j=0;j<n.length;j++) i+=n.charCodeAt(j);
+  return c[i%c.length];
+}
+
+function render(staff, detectedUser){
+  selectedUser = detectedUser || '';
+  var app = document.getElementById('app');
+
+  var html = '';
+  // Header
+  html += '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--blue-l);border:2px solid #93c5fd;border-radius:10px;margin-bottom:16px">';
+  html += '<div style="font-size:20px">→</div>';
+  html += '<div><div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:15px;color:#1e3a8a">Mover a: '+listName+'</div>';
+  html += '<div style="font-size:11px;color:#3b82f6">¿Quién realiza este movimiento?</div></div>';
+  html += '</div>';
+
+  // Person grid
+  html += '<div class="staff-grid">';
+  staff.forEach(function(name){
+    var sel = selectedUser === name;
+    var col = getColor(name);
+    html += '<button class="staff-btn" id="btn_'+name.replace(/\s/g,'_')+'" onclick="selectUser(\''+name+'\')" style="'
+      +'background:'+(sel?col:'white')+';border-color:'+(sel?col:'var(--border)')+'">';
+    html += '<div class="avatar" style="background:'+(sel?'rgba(255,255,255,0.25)':col)+'">'+getInitials(name)+'</div>';
+    html += '<div class="name-text" style="color:'+(sel?'white':'#0f172a')+'">'+name+'</div>';
+    html += '</button>';
+  });
+  html += '</div>';
+
+  html += '<div class="footer">';
+  html += '<button class="btn btn-ghost" onclick="t.closePopup()">Cancelar</button>';
+  html += '<button class="btn btn-primary" id="btnMove" onclick="doMove()" '+(selectedUser?'':'disabled style="background:#94a3b8;cursor:not-allowed"')+'>Mover</button>';
+  html += '</div>';
+
+  app.innerHTML = html;
+  t.sizeTo('#app');
+}
+
+function selectUser(name){
+  selectedUser = name;
+  // Re-render just the buttons and footer for speed
+  document.querySelectorAll('.staff-btn').forEach(function(btn){
+    var n = btn.querySelector('.name-text').textContent;
+    var col = getColor(n);
+    var sel = n === name;
+    btn.style.background = sel ? col : 'white';
+    btn.style.borderColor = sel ? col : 'var(--border)';
+    btn.querySelector('.avatar').style.background = sel ? 'rgba(255,255,255,0.25)' : col;
+    btn.querySelector('.name-text').style.color = sel ? 'white' : '#0f172a';
+  });
+  var btnMove = document.getElementById('btnMove');
+  if(btnMove){
+    btnMove.disabled = false;
+    btnMove.style.background = 'var(--blue)';
+    btnMove.style.cursor = 'pointer';
+  }
+}
+
+function doMove(){
+  if(!selectedUser || !listId) return;
+
+  var btnMove = document.getElementById('btnMove');
+  if(btnMove){ btnMove.textContent = 'Moviendo...'; btnMove.disabled = true; }
+
+  // Get current card ID from Trello context
+  t.card('id','name').then(function(card){
+    // Move card to new list
+    return fetch('https://api.trello.com/1/cards/'+card.id
+      +'?key='+API_KEY+'&token='+API_TOKEN,{
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ idList: listId })
+    })
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(){
+      // Add comment with who moved it
+      var comment = 'Movida a *'+listName+'* por: *'+selectedUser+'*';
+      return fetch('https://api.trello.com/1/cards/'+card.id+'/actions/comments'
+        +'?key='+API_KEY+'&token='+API_TOKEN,{
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ text: comment })
+      });
+    });
+  })
+  .then(function(){
+    // Show success briefly then close
+    document.getElementById('app').innerHTML = '<div style="text-align:center;padding:24px">'
+      +'<div style="font-size:24px;margin-bottom:8px">✅</div>'
+      +'<div style="font-weight:700;font-size:14px;color:#065f46">Tarjeta movida</div>'
+      +'<div style="font-size:12px;color:var(--muted);margin-top:4px">→ '+listName+'</div>'
+      +'</div>';
+    t.sizeTo('#app');
+    setTimeout(function(){ t.closePopup(); }, 1200);
+  })
+  .catch(function(err){
+    document.getElementById('app').innerHTML = '<div style="padding:16px;background:#fee2e2;border-radius:8px;color:#991b1b;font-size:12px">❌ Error: '+err.message+'</div>';
+    t.sizeTo('#app');
+  });
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+var DEFAULT_STAFF = ['JOAN ALVAREZ','MIRIAM ALVAREZ','JORDI F.','J. OLIVER','RAUL','CHARLY'];
+
+// Try to auto-detect Trello user
+t.member('all').then(function(member){
+  var detectedUser = member && member.fullName ? member.fullName.toUpperCase() : '';
+  t.get('board','shared', CFG_KEY).then(function(cfg){
+    var staff = (cfg && cfg.staff && cfg.staff.length) ? cfg.staff : DEFAULT_STAFF;
+    render(staff, detectedUser);
+  }).catch(function(){
+    render(DEFAULT_STAFF, detectedUser);
+  });
+}).catch(function(){
+  t.get('board','shared', CFG_KEY).then(function(cfg){
+    var staff = (cfg && cfg.staff && cfg.staff.length) ? cfg.staff : DEFAULT_STAFF;
+    render(staff, '');
+  }).catch(function(){
+    render(DEFAULT_STAFF, '');
+  });
+});
+</script>
+</body>
+</html>

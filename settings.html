@@ -110,6 +110,9 @@ input:checked+.slider:before{transform:translateX(16px)}
       <div class="nav-item" data-panel="plantillas">
         <span class="nav-icon">📄</span> Plantillas
       </div>
+      <div class="nav-item" data-panel="botones">
+        <span class="nav-icon">⚡</span> Botones
+      </div>
       <div class="nav-item" data-panel="credenciales">
         <span class="nav-icon">🔑</span> Credenciales
       </div>
@@ -239,6 +242,27 @@ input:checked+.slider:before{transform:translateX(16px)}
       </div>
     </div>
 
+    <!-- BOTONES RÁPIDOS -->
+    <div class="panel" id="panel-botones">
+      <div class="card-title" style="font-size:15px;font-weight:800;font-family:'Syne',sans-serif;color:#0f172a;margin-bottom:16px;text-transform:none;letter-spacing:0">Botones de movimiento rápido</div>
+      <div class="card">
+        <div class="card-title">Listas activas como botones</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px">
+          Activa las listas que quieres que aparezcan como botones dentro de cada tarjeta. Al pulsar un botón, la tarjeta se mueve directamente a esa lista.
+        </div>
+        <div id="botones-list">
+          <div style="font-size:12px;color:var(--muted);text-align:center;padding:16px">Cargando listas del tablero...</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Vista previa</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Así aparecerán los botones dentro de cada tarjeta:</div>
+        <div id="botones-preview" style="background:var(--bg);border-radius:8px;padding:10px;font-size:12px;color:var(--muted);font-style:italic">
+          Activa al menos una lista para ver la previsualización
+        </div>
+      </div>
+    </div>
+
     <!-- CREDENCIALES -->
     <div class="panel" id="panel-credenciales">
       <div class="card-title" style="font-size:15px;font-weight:800;font-family:'Syne',sans-serif;color:#0f172a;margin-bottom:16px;text-transform:none;letter-spacing:0">Credenciales y Conexiones</div>
@@ -292,7 +316,8 @@ var DEFAULT_CONFIG = {
     RECIBIDO_SIN_CITA: '68a4531b010b18274c39d3a9',
     INSTALADO: '69398a369afd8d4d2f14bded',
   },
-  credentials: { key:'a94def1efe06824418ef1ebc9bd12b4c', token:'', webapp:'' }
+  credentials: { key:'a94def1efe06824418ef1ebc9bd12b4c', token:'', webapp:'' },
+  quickMoveListIds: []
 };
 
 var config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
@@ -307,6 +332,7 @@ document.querySelectorAll('.nav-item').forEach(function(item){
     item.classList.add('active');
     document.getElementById('panel-'+item.dataset.panel).classList.add('active');
     if(item.dataset.panel === 'listas') loadBoardLists();
+    if(item.dataset.panel === 'botones') loadBotonesPanel();
   });
 });
 
@@ -467,6 +493,75 @@ function renderListMapper(){
     row.innerHTML = badge + sel;
     mapper.appendChild(row);
   });
+}
+
+// ── Botones panel ────────────────────────────────────────────────────────
+var botonesLists = [];
+
+function loadBotonesPanel(){
+  var container = document.getElementById('botones-list');
+  if(!container) return;
+  if(botonesLists.length){ renderBotonesList(); return; }
+  container.innerHTML = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px">Cargando...</div>';
+
+  var key = config.credentials.key || getVal('cred-key');
+  var tok = config.credentials.token || getVal('cred-token');
+
+  fetch('https://api.trello.com/1/boards/QNEswrD1/lists?key='+key+'&token='+tok+'&filter=open')
+  .then(function(r){ return r.json(); })
+  .then(function(lists){
+    botonesLists = lists;
+    renderBotonesList();
+  }).catch(function(){
+    container.innerHTML = '<div style="font-size:12px;color:#dc2626">Error cargando listas. Verifica las credenciales.</div>';
+  });
+}
+
+function renderBotonesList(){
+  var container = document.getElementById('botones-list');
+  var active = config.quickMoveListIds || [];
+  var html = '';
+  botonesLists.forEach(function(l){
+    var on = active.indexOf(l.id) !== -1;
+    html += '<div class="toggle-row">';
+    html += '<div><div class="toggle-label" style="font-size:13px">'+l.name+'</div></div>';
+    html += '<label class="toggle"><input type="checkbox" data-listid="'+l.id+'" '+(on?'checked':'')+' onchange="toggleBoton(this)"><span class="slider"></span></label>';
+    html += '</div>';
+  });
+  container.innerHTML = html || '<div style="font-size:12px;color:var(--muted)">No hay listas en el tablero</div>';
+  renderBotonesPreview();
+}
+
+function toggleBoton(checkbox){
+  var listId = checkbox.dataset.listid;
+  var active = config.quickMoveListIds || [];
+  if(checkbox.checked){
+    if(active.indexOf(listId) === -1) active.push(listId);
+  } else {
+    active = active.filter(function(id){ return id !== listId; });
+  }
+  config.quickMoveListIds = active;
+  markChanged();
+  renderBotonesPreview();
+}
+
+function renderBotonesPreview(){
+  var preview = document.getElementById('botones-preview');
+  if(!preview) return;
+  var active = config.quickMoveListIds || [];
+  if(!active.length){
+    preview.innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">Activa al menos una lista para ver la previsualización</div>';
+    return;
+  }
+  var html = '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Acciones en tarjeta</div>';
+  active.forEach(function(listId){
+    var list = botonesLists.find(function(l){ return l.id === listId; });
+    if(!list) return;
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:white;border:1.5px solid var(--border);border-radius:7px;margin-bottom:5px;font-size:12px;font-weight:600;color:#0f172a">'
+      +'<span style="color:var(--blue);font-weight:800">→</span> '+list.name
+      +'</div>';
+  });
+  preview.innerHTML = html;
 }
 
 // ── Collect config from UI ────────────────────────────────────────────────

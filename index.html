@@ -75,19 +75,73 @@ TrelloPowerUp.initialize({
     ];
   },
 
-  /* ── Botón en el reverso de cada tarjeta ── */
+  /* ── Botones en el reverso de cada tarjeta (dinámicos según config) ── */
   'card-buttons': function(t) {
-    return [{
-      icon: ICON_URL,
-      text: 'Ver / Editar Pedido',
-      callback: function(t) {
-        return t.modal({
-          url:   BASE_URL + 'modal.html?mode=card-detail',
-          title: 'Detalles del Pedido',
-          height: 560
+    return t.get('board','shared','stellantis-config').then(function(cfg){
+      var buttons = [];
+
+      // Botón fijo: Ver / Editar Pedido
+      buttons.push({
+        icon: ICON_URL,
+        text: 'Ver / Editar Pedido',
+        callback: function(t) {
+          return t.modal({
+            url:   BASE_URL + 'modal.html?mode=card-detail',
+            title: 'Detalles del Pedido',
+            height: 560
+          });
+        }
+      });
+
+      // Botones de movimiento rápido configurados
+      var quickIds = (cfg && cfg.quickMoveListIds) ? cfg.quickMoveListIds : [];
+      var lists    = (cfg && cfg.lists) ? cfg.lists : {};
+
+      // Build list name map from config
+      var LIST_NAMES = {
+        '68a4531b010b18274c39d3a8': 'PEDIDOS',
+        '68a4531b010b18274c39d3a9': 'En tránsito',
+        '69a6c24fef3798bd7e680e8b': 'J.OLIVER / SIN CITA',
+        '69f21c8451c079bf1a2a3e20': 'RAUL / SIN CITA',
+        '69f21c945b3ef6ba7cfcfc6d': 'CHARLY / SIN CITA',
+        '69f22828cd309506fef4e59d': 'JORDI F. / SIN CITA',
+        '68a6d0d6a3dc70045ddd13ee': 'CON CITA / Avisado',
+        '69398a369afd8d4d2f14bded': 'ENTREGADO EN TALLER',
+        '698e0a66ab8312b60d46eee3': 'REVISAR RECEPCION',
+      };
+
+      quickIds.forEach(function(listId){
+        var listName = LIST_NAMES[listId] || listId;
+        buttons.push({
+          icon: ICON_URL,
+          text: '→ ' + listName,
+          callback: (function(lid, lname){
+            return function(t){
+              return t.popup({
+                title: 'Mover a: ' + lname,
+                url:   BASE_URL + 'quick-move.html?listId='+lid+'&listName='+encodeURIComponent(lname),
+                height: 340
+              });
+            };
+          })(listId, listName)
         });
-      }
-    }];
+      });
+
+      return buttons;
+    }).catch(function(){
+      // Fallback: solo el botón de ver pedido
+      return [{
+        icon: ICON_URL,
+        text: 'Ver / Editar Pedido',
+        callback: function(t) {
+          return t.modal({
+            url:   BASE_URL + 'modal.html?mode=card-detail',
+            title: 'Detalles del Pedido',
+            height: 560
+          });
+        }
+      }];
+    });
   },
 
 
