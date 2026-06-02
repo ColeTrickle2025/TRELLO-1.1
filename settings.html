@@ -338,14 +338,30 @@ document.querySelectorAll('.nav-item').forEach(function(item){
 
 // ── Load config from Trello ───────────────────────────────────────────────
 function loadConfig() {
-  t.get('board','shared', CFG_KEY).then(function(saved){
-    if(saved) {
-      // Merge saved over defaults to keep new keys
+  // Intentar cargar desde board scope, luego member scope como fallback
+  t.get('board','shared', CFG_KEY)
+  .then(function(saved){
+    if(saved){
       config = deepMerge(DEFAULT_CONFIG, saved);
+      applyConfigToUI();
+    } else {
+      // Nada en board scope, intentar member scope
+      return t.get('member','private', CFG_KEY).then(function(saved2){
+        if(saved2) config = deepMerge(DEFAULT_CONFIG, saved2);
+        applyConfigToUI();
+      });
     }
-    applyConfigToUI();
-  }).catch(function(){
-    applyConfigToUI();
+  })
+  .catch(function(){
+    // Si board scope falla completamente, intentar member scope
+    t.get('member','private', CFG_KEY)
+    .then(function(saved){
+      if(saved) config = deepMerge(DEFAULT_CONFIG, saved);
+      applyConfigToUI();
+    })
+    .catch(function(){
+      applyConfigToUI();
+    });
   });
 }
 
@@ -614,8 +630,7 @@ function saveAll(){
   statusEl.textContent = 'Guardando...';
   statusEl.style.color = 'var(--muted)';
 
-  t.set('board','shared', CFG_KEY, config)
-  .then(function(){
+  function onSuccess(){
     hasChanges = false;
     statusEl.textContent = '✓ Guardado correctamente';
     statusEl.style.color = '#059669';
@@ -623,9 +638,22 @@ function saveAll(){
       statusEl.textContent = 'Sin cambios pendientes';
       statusEl.style.color = 'var(--muted)';
     }, 2500);
-  }).catch(function(err){
-    statusEl.textContent = '❌ Error al guardar: '+err.message;
+  }
+
+  function onError(err){
+    statusEl.textContent = '❌ Error al guardar: '+(err.message||err);
     statusEl.style.color = '#dc2626';
+  }
+
+  // Intentar guardar en board scope (compartido con todo el equipo)
+  // Si falla, guardar en member scope (solo para este usuario)
+  t.set('board','shared', CFG_KEY, config)
+  .then(onSuccess)
+  .catch(function(){
+    // Fallback: guardar en member scope
+    t.set('member','private', CFG_KEY, config)
+    .then(onSuccess)
+    .catch(onError);
   });
 }
 
