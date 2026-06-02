@@ -217,6 +217,14 @@ var TEMPLATES={
 /* ── state ── */
 // ── Lista de personas del taller — editar con los nombres reales ────────
 // Etiquetas de Trello por marca — IDs reales del tablero
+// Normaliza matrícula para comparación — quita E inicial, espacios, guiones
+function normMatricula(m){
+  if(!m)return '';
+  return m.toUpperCase().trim()
+    .replace(/^E[-\s]?/,'')   // quita E o E- del principio
+    .replace(/[\s\-]/g,'');   // quita espacios y guiones
+}
+
 var BRAND_LABELS={
   'Peugeot':        '68a4531b010b18274c39d39e',
   'Citroën':        '68a4531b010b18274c39d3a3',
@@ -268,8 +276,9 @@ function render(){
    MODO: NUEVA SOLICITUD
 ══════════════════════════════════════════════════════════════ */
 function renderNewRequest(){
-  if(state.step==='who')       return renderWho();
-  if(state.step==='pick')      return renderPick();
+  if(state.step==='who')           return renderWho();
+  if(state.step==='pick')          return renderPick();
+  if(state.step==='dup-check')     return renderDupCheck();
   if(state.step==='form')      return renderForm();
   if(state.step==='list-pick') return renderListPick();
 }
@@ -367,6 +376,8 @@ function pickTemplate(id){
   state.priority='normal';
   state.marca=BRANDS[0];
   state.sin_cita=false;
+  state.skipDupCheck=false;
+  state.duplicates=[];
   // Pre-inicializar selects con su valor por defecto para que salgan en el título
   var defaults={};
   TEMPLATES[id].fields.forEach(function(f){
@@ -504,33 +515,62 @@ function submitForm(){
     state.msg={type:'warn',text:'⚠️ Obligatorio: selecciona una fecha de cita o marca "Vehículo sin cita asignada"'};
     return render();
   }
-  state.saving=true;
-  render();
-
-  // Load credentials and lists
+  // ── Comprobar duplicados antes de continuar ──────────────────────────
   var API_KEY='a94def1efe06824418ef1ebc9bd12b4c';
   var API_TOKEN='ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
   state.apiKey=API_KEY;
   state.apiToken=API_TOKEN;
 
-  // Board ID hardcodeado directamente (de la URL del tablero)
-  var boardId = 'QNEswrD1';
+  var matriculaBuscar=normMatricula(state.values['matricula']||'');
+  if(matriculaBuscar && !state.skipDupCheck){
+    state.saving=true;
+    state.msg={type:'info',text:'Verificando duplicados...'};
+    render();
+    fetch('https://api.trello.com/1/boards/QNEswrD1/cards?key='+API_KEY+'&token='+API_TOKEN+'&filter=open&fields=id,name,idList,desc')
+    .then(function(r){return r.json();})
+    .then(function(cards){
+      // Buscar tarjetas con matrícula coincidente (con o sin E)
+      var matches=cards.filter(function(c){
+        var cn=normMatricula(c.name);
+        // extraer matrícula del título: [TIPO] - MATRICULA - ...
+        var parts=c.name.split(' - ');
+        var cardMat=parts.length>1?normMatricula(parts[1]):'';
+        return cardMat===matriculaBuscar || cn.indexOf(matriculaBuscar)!==-1;
+      });
+      state.saving=false;
+      if(matches.length>0){
+        state.duplicates=matches;
+        state.step='dup-check';
+        render();
+      } else {
+        // Sin duplicados — continuar normal
+        proceedToListPick();
+      }
+    })
+    .catch(function(){
+      // Error en la búsqueda — continuar sin bloquear
+      state.saving=false;
+      proceedToListPick();
+    });
+    return;
+  }
 
-  fetch('https://api.trello.com/1/boards/'+boardId+'/lists?key='+API_KEY+'&token='+API_TOKEN+'&filter=open')
-  .then(function(r){
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    return r.json();
-  }).then(function(lists){
+  proceedToListPick();
+}
+
+function proceedToListPick(){
+  var API_KEY='a94def1efe06824418ef1ebc9bd12b4c';
+  var API_TOKEN='ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
+  state.saving=true;
+  render();
+
+  fetch('https://api.trello.com/1/boards/QNEswrD1/lists?key='+API_KEY+'&token='+API_TOKEN+'&filter=open')
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  .then(function(lists){
     state.lists=lists||[];
     state.saving=false;
-    if(!state.lists.length){
-      state.msg={type:'warn',text:'⚠️ No se encontraron listas en el tablero.'};
-      render();return;
-    }
-    // Por defecto seleccionar PEDIDOS (primera lista)
-    var defaultList=state.lists.find(function(l){
-      return l.id==='68a4531b010b18274c39d3a8'; // PEDIDOS
-    });
+    if(!state.lists.length){state.msg={type:'warn',text:'⚠️ No se encontraron listas.'};render();return;}
+    var defaultList=state.lists.find(function(l){return l.id==='68a4531b010b18274c39d3a8';});
     state.selectedList=defaultList?defaultList.id:state.lists[0].id;
     state.step='list-pick';
     render();
@@ -539,6 +579,52 @@ function submitForm(){
     state.msg={type:'warn',text:'❌ Error conectando con Trello: '+err.message};
     render();
   });
+}
+
+// ── PANTALLA DE DUPLICADOS ───────────────────────────────────────────────
+function renderDupCheck(){
+  var mat=state.values['matricula']||'';
+  var dups=state.duplicates||[];
+
+  var html='<div class="scroll">';
+  html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:12px 14px;background:#fef3c7;border:2px solid #fbbf24;border-radius:10px">';
+  html+='<div style="font-size:24px;flex-shrink:0">⚠️</div>';
+  html+='<div><div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:15px;color:#92400e">Tarjeta ya existente</div>';
+  html+='<div style="font-size:12px;color:#b45309">Se encontró '+(dups.length>1?dups.length+' tarjetas abiertas':'1 tarjeta abierta')+' con la matrícula <b>'+mat+'</b></div></div>';
+  html+='</div>';
+
+  dups.forEach(function(card){
+    // Extraer datos del título: [TIPO] - MATRICULA - MARCA MODELO - CLIENTE - PEDIDO POR X
+    var parts=card.name.split(' - ');
+    var tipo=parts[0]||'—';
+    var cliente=parts[3]||'—';
+    var pedidoPor=parts[4]?parts[4].replace('PEDIDO POR ',''):'—';
+    // Extraer primera línea de la descripción (estado)
+    var descLines=(card.desc||'').split('
+').filter(function(l){return l.trim()&&!l.startsWith('##')&&!l.startsWith('---')&&!l.startsWith('*');});
+    var descPreview=descLines.slice(0,4).join('
+');
+
+    html+='<div style="background:white;border:1.5px solid #fbbf24;border-radius:10px;padding:14px;margin-bottom:10px">';
+    html+='<div style="font-weight:800;font-size:13px;color:#0c1a35;margin-bottom:6px">'+card.name+'</div>';
+    if(descPreview){
+      html+='<div style="font-size:11px;color:#475569;background:#f8fafc;border-radius:6px;padding:8px 10px;margin-bottom:10px;white-space:pre-line;line-height:1.6">'+descPreview+'</div>';
+    }
+    html+='<a href="https://trello.com/c/'+card.id+'" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#1d4ed8;text-decoration:none">Ver tarjeta en Trello →</a>';
+    html+='</div>';
+  });
+
+  html+='<div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:#1e3a8a">';
+  html+='¿Quieres crear una tarjeta nueva de todas formas? Por ejemplo si es un pedido diferente para el mismo vehículo.';
+  html+='</div>';
+
+  html+='<div class="footer">';
+  html+='<button class="btn btn-ghost" onclick="state.step=\'form\';state.msg=null;render()">← Volver</button>';
+  html+='<button class="btn btn-primary" onclick="state.skipDupCheck=true;state.step=\'form\';submitForm()" style="background:#d97706">Crear de todas formas</button>';
+  html+='</div></div>';
+
+  app().innerHTML=html;
+  t.sizeTo('#app');
 }
 
 function renderListPick(){
