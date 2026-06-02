@@ -375,30 +375,32 @@ function confirmWho(){
 
 function renderPick(){
   var TPL_META={
-    airbag:    {color:'#1d4ed8',bg:'#dbeafe',border:'#3b82f6',icon:'AIR',hint:'Recall, campaña o sustitución de airbag'},
-    neumaticos:{color:'#059669',bg:'#d1fae5',border:'#10b981',icon:'NEU',hint:'Cubierta, llanta, equilibrado'},
-    general:   {color:'#7c3aed',bg:'#ede9fe',border:'#8b5cf6',icon:'PED',hint:'Cualquier otra pieza o recambio'},
+    airbag:    {color:'#1d4ed8',bg:'#dbeafe',border:'#3b82f6',icon:'AIR',hint:'Airbag · Recall'},
+    neumaticos:{color:'#059669',bg:'#d1fae5',border:'#10b981',icon:'NEU',hint:'Neumáticos'},
+    general:   {color:'#7c3aed',bg:'#ede9fe',border:'#8b5cf6',icon:'PED',hint:'Pedido General'},
   };
   var html='<div class="scroll">';
   html+='<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:18px;color:#0c1a35;margin-bottom:4px">Nueva Solicitud</div>';
   html+='<div style="font-size:12px;color:#64748b;margin-bottom:20px">Selecciona el tipo de pedido</div>';
-  html+='<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">';
+  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">';
   Object.values(TEMPLATES).forEach(function(tpl){
     var m=TPL_META[tpl.id]||{color:'#475569',bg:'#f1f5f9',border:'#94a3b8',icon:'?',hint:''};
     html+='<div onclick="pickTemplate(\''+tpl.id+'\')" style="'
-      +'display:flex;align-items:center;gap:14px;padding:14px 16px;'
-      +'background:white;border:2px solid '+m.border+';border-radius:12px;'
-      +'cursor:pointer;transition:all 0.15s" '
-      +'onmouseover="this.style.background=\''+m.bg+'\'" '
-      +'onmouseout="this.style.background=\'white\'">';
-    html+='<div style="width:48px;height:48px;border-radius:10px;background:'+m.bg+';'
-      +'display:flex;align-items:center;justify-content:center;flex-shrink:0;'
-      +'font-size:11px;font-weight:800;color:'+m.color+';letter-spacing:0.1em">'+m.icon+'</div>';
-    html+='<div style="flex:1">';
-    html+='<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:15px;color:#0c1a35;margin-bottom:2px">'+tpl.name+'</div>';
-    html+='<div style="font-size:12px;color:#64748b">'+m.hint+'</div>';
-    html+='</div>';
-    html+='<div style="font-size:18px;color:'+m.color+'">›</div>';
+      +'background:white;border:2px solid '+m.border+';border-radius:14px;'
+      +'padding:18px 10px 14px;cursor:pointer;text-align:center;'
+      +'transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:10px" '
+      +'onmouseover="this.style.background=\''+m.bg+'\';this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 4px 12px rgba(0,0,0,0.1)\'" '
+      +'onmouseout="this.style.background=\'white\';this.style.transform=\'none\';this.style.boxShadow=\'none\'">';
+    // Icono cuadrado con color de marca
+    html+='<div style="width:52px;height:52px;border-radius:12px;background:'+m.bg+';'
+      +'display:flex;align-items:center;justify-content:center;'
+      +'border:2px solid '+m.border+'">'
+      +'<span style="font-size:12px;font-weight:800;color:'+m.color+';letter-spacing:0.08em">'+m.icon+'</span>'
+      +'</div>';
+    // Nombre
+    html+='<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:13px;color:#0c1a35;line-height:1.2">'+tpl.name+'</div>';
+    // Descripción
+    html+='<div style="font-size:10px;color:'+m.color+';font-weight:600;letter-spacing:0.03em">'+m.hint+'</div>';
     html+='</div>';
   });
   html+='</div>';
