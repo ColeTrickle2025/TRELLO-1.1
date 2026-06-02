@@ -504,8 +504,8 @@ function loadBotonesPanel(){
   if(botonesLists.length){ renderBotonesList(); return; }
   container.innerHTML = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px">Cargando...</div>';
 
-  var key = config.credentials.key || getVal('cred-key');
-  var tok = config.credentials.token || getVal('cred-token');
+  var key = 'a94def1efe06824418ef1ebc9bd12b4c';
+  var tok = 'ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
 
   fetch('https://api.trello.com/1/boards/QNEswrD1/lists?key='+key+'&token='+tok+'&filter=open')
   .then(function(r){ return r.json(); })
