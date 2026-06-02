@@ -90,18 +90,6 @@ TrelloPowerUp.initialize({
     }];
   },
 
-  /* ── Sección resumen en el reverso de la tarjeta ── */
-  'card-back-section': function(t) {
-    return {
-      title: '🔧 Datos del Pedido',
-      icon:  ICON_URL,
-      content: {
-        type:   'iframe',
-        url:    t.signUrl(BASE_URL + 'card-section.html'),
-        height: 230
-      }
-    };
-  },
 
   /* ── Botón en el menú (···) de cada lista ── */
   'list-actions': function(t) {

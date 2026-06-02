@@ -137,6 +137,7 @@ function parseXLS(file){
           else if(hn === 'modelo')                             cols.modelo = i;
           else if(hn.includes('intervenci'))                   cols.intervenciones = i;
           else if(hn.includes('comentario'))                   cols.comentario = i;
+          else if(hn === 'estado')                             cols.estado = i;
         });
 
         // Get brand from cell B2 (row index 1, col 1)
@@ -163,6 +164,7 @@ function parseXLS(file){
           var modelo   = String(row[cols.modelo]||'').trim().toUpperCase();
           var interv   = String(row[cols.intervenciones]||row[cols.comentario]||'').trim();
 
+          var estado = String(row[cols.estado]||'').trim();
           rows.push({
             matricula: mat,
             matriculaRaw: String(row[cols.matricula]||'').trim(),
@@ -174,6 +176,7 @@ function parseXLS(file){
             marca: marca,
             modelo: modelo,
             intervenciones: interv,
+            estado: estado,
             archivo: file.name,
           });
         }
@@ -372,6 +375,9 @@ function renderPreview(){
   var toUpdate = matched.filter(function(m){
     return m.fecha || m.vin;
   });
+  var toArchive = matched.filter(function(m){
+    return m.estado && m.estado.toLowerCase().trim() === 'entrega';
+  });
 
   var html = '<div>';
 
@@ -382,10 +388,13 @@ function renderPreview(){
   html += statCard('Sin tarjeta', unmatched.length, '#64748b', '#f1f5f9', '#cbd5e1');
   html += '</div>';
 
-  if(toUpdate.length === 0){
+  if(toUpdate.length === 0 && toArchive.length === 0){
     html += '<div class="alert alert-warn">No hay tarjetas que actualizar. Verifica que las matrículas del Excel coincidan con las tarjetas de Trello.</div>';
   } else {
-    html += '<div class="alert alert-info">Se actualizarán <b>'+toUpdate.length+' tarjetas</b> con fecha de cita y/o VIN desde ServiceBox.</div>';
+    var infoText = '';
+    if(toUpdate.length > 0) infoText += 'Se actualizarán <b>'+toUpdate.length+' tarjetas</b> con fecha de cita y/o VIN. ';
+    if(toArchive.length > 0) infoText += 'Se archivarán <b>'+toArchive.length+' tarjetas</b> con estado "Entrega".';
+    html += '<div class="alert alert-info">'+infoText+'</div>';
   }
 
   // Table of matches
@@ -393,7 +402,7 @@ function renderPreview(){
     html += '<div class="card">';
     html += '<div class="section-title">Tarjetas que se actualizarán ('+matched.length+')</div>';
     html += '<div style="overflow-x:auto"><table>';
-    html += '<thead><tr><th>Matrícula</th><th>Tarjeta Trello</th><th>Fecha cita</th><th>Hora</th><th>VIN</th></tr></thead><tbody>';
+    html += '<thead><tr><th>Matrícula</th><th>Tarjeta Trello</th><th>Fecha cita</th><th>Hora</th><th>VIN</th><th>ServiceBox</th></tr></thead><tbody>';
     matched.forEach(function(m){
       html += '<tr>';
       html += '<td><span class="mat">'+m.matriculaRaw+'</span></td>';
@@ -401,6 +410,16 @@ function renderPreview(){
       html += '<td><span style="font-size:11px;font-weight:600;color:'+(m.fecha?'#059669':'#94a3b8')+'">'+(m.fecha||'—')+'</span></td>';
       html += '<td style="font-size:11px;color:#64748b">'+(m.hora||'—')+'</td>';
       html += '<td><span style="font-family:monospace;font-size:10px;color:'+(m.vin?'#0f172a':'#94a3b8')+'">'+(m.vin||'—')+'</span></td>';
+      var estadoBadge = '';
+      if(m.estado){
+        var eL = m.estado.toLowerCase().trim();
+        var eStyle = eL==='entrega' ? 'background:#d1fae5;color:#065f46;border-color:#6ee7b7'
+                   : eL==='recepcionado' ? 'background:#dbeafe;color:#1e3a8a;border-color:#93c5fd'
+                   : eL==='suspendido' ? 'background:#fee2e2;color:#991b1b;border-color:#fca5a5'
+                   : 'background:#f1f5f9;color:#475569;border-color:#cbd5e1';
+        estadoBadge = '<span class="badge" style="'+eStyle+'">'+m.estado+'</span>';
+      }
+      html += '<td>'+estadoBadge+'</td>';
       html += '</tr>';
     });
     html += '</tbody></table></div></div>';
@@ -419,8 +438,12 @@ function renderPreview(){
 
   html += '<div style="display:flex;justify-content:space-between;margin-top:14px">';
   html += '<button class="btn btn-ghost" onclick="state.step=\'upload\';render()">← Volver</button>';
-  if(toUpdate.length > 0){
-    html += '<button class="btn btn-primary" onclick="startUpdate()">✅ Actualizar '+toUpdate.length+' tarjeta'+(toUpdate.length>1?'s':'')+'</button>';
+  var totalActions = toUpdate.length + toArchive.length;
+  if(totalActions > 0){
+    var btnLabel = [];
+    if(toUpdate.length > 0) btnLabel.push('Actualizar '+toUpdate.length);
+    if(toArchive.length > 0) btnLabel.push('Archivar '+toArchive.length);
+    html += '<button class="btn btn-primary" onclick="startUpdate()">✅ '+btnLabel.join(' · ')+' tarjeta'+(totalActions>1?'s':'')+'</button>';
   }
   html += '</div></div>';
 
@@ -439,7 +462,7 @@ function statCard(label, value, color, bg, border){
 var updateIndex = 0;
 
 function renderProcessing(){
-  var total = state.matches.filter(function(m){ return m.status==='match' && (m.fecha||m.vin); }).length;
+  var total = state.matches.filter(function(m){ return m.status==='match' && (m.fecha||m.vin||( m.estado&&m.estado.toLowerCase().trim()==='entrega')); }).length;
   var pct = total > 0 ? Math.round(updateIndex/total*100) : 0;
 
   app().innerHTML = '<div style="text-align:center;padding:30px 16px">'
@@ -452,18 +475,28 @@ function renderProcessing(){
 
 function startUpdate(){
   var toUpdate = state.matches.filter(function(m){ return m.status==='match' && (m.fecha||m.vin); });
+  var toArchive = state.matches.filter(function(m){
+    return m.status==='match' && m.estado && m.estado.toLowerCase().trim()==='entrega';
+  });
+  var allActions = toUpdate.slice();
+  // Add archive-only rows not already in toUpdate
+  toArchive.forEach(function(m){
+    if(!allActions.find(function(a){return a.matricula===m.matricula;})){
+      allActions.push(m);
+    }
+  });
   state.results = [];
   updateIndex = 0;
   state.step = 'processing';
   render();
 
   function next(){
-    if(updateIndex >= toUpdate.length){
+    if(updateIndex >= allActions.length){
       state.step = 'done';
       render();
       return;
     }
-    var m = toUpdate[updateIndex];
+    var m = allActions[updateIndex];
     var card = m.trelloCard;
 
     // Build due date ISO string
@@ -480,6 +513,11 @@ function startUpdate(){
     if(dueISO) payload.due = dueISO;
     if(newDesc !== card.desc) payload.desc = newDesc;
     if(dueISO) payload.dueComplete = false;
+    // Archive card if estado is Entrega
+    if(m.estado && m.estado.toLowerCase().trim() === 'entrega'){
+      payload.closed = true;
+      payload.dueComplete = true;
+    }
 
     fetch('https://api.trello.com/1/cards/'+card.id+'?key='+API_KEY+'&token='+API_TOKEN,{
       method: 'PUT',
