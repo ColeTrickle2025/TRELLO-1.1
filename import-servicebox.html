@@ -189,14 +189,22 @@ function parseXLS(file){
   });
 }
 
-// ── Load all Trello cards ─────────────────────────────────────────────────
+// ── Load all Trello cards + list names ────────────────────────────────────
+var listNamesMap = {};
+
 function loadTrelloCards(){
   if(state.boardCards) return Promise.resolve(state.boardCards);
-  return fetch('https://api.trello.com/1/boards/'+BOARD_ID+'/cards'
-    +'?key='+API_KEY+'&token='+API_TOKEN
-    +'&filter=open&fields=id,name,desc,due,idList')
-  .then(function(r){ return r.json(); })
-  .then(function(cards){
+  return Promise.all([
+    fetch('https://api.trello.com/1/boards/'+BOARD_ID+'/cards'
+      +'?key='+API_KEY+'&token='+API_TOKEN
+      +'&filter=open&fields=id,name,desc,due,idList').then(function(r){return r.json();}),
+    fetch('https://api.trello.com/1/boards/'+BOARD_ID+'/lists'
+      +'?key='+API_KEY+'&token='+API_TOKEN
+      +'&filter=open&fields=id,name').then(function(r){return r.json();})
+  ]).then(function(res){
+    var cards = res[0];
+    var lists = res[1];
+    lists.forEach(function(l){ listNamesMap[l.id] = l.name; });
     state.boardCards = cards;
     return cards;
   });
@@ -402,11 +410,15 @@ function renderPreview(){
     html += '<div class="card">';
     html += '<div class="section-title">Tarjetas que se actualizarán ('+matched.length+')</div>';
     html += '<div style="overflow-x:auto"><table>';
-    html += '<thead><tr><th>Matrícula</th><th>Tarjeta Trello</th><th>Fecha cita</th><th>Hora</th><th>VIN</th><th>ServiceBox</th></tr></thead><tbody>';
+    html += '<thead><tr><th>Matrícula</th><th>Tarjeta Trello</th><th>Está en</th><th>Fecha cita</th><th>Hora</th><th>VIN</th><th>ServiceBox</th></tr></thead><tbody>';
     matched.forEach(function(m){
       html += '<tr>';
+      var currentList = listNamesMap[m.trelloCard.idList] || '—';
+      // Shorten long list names
+      var shortList = currentList.length > 20 ? currentList.substring(0,18)+'…' : currentList;
       html += '<td><span class="mat">'+m.matriculaRaw+'</span></td>';
-      html += '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px">'+m.trelloCard.name.substring(0,40)+'...</td>';
+      html += '<td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px">'+m.trelloCard.name.substring(0,35)+'...</td>';
+      html += '<td><span title="'+currentList+'" style="font-size:10px;font-weight:600;padding:2px 6px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:5px;color:#475569;white-space:nowrap">'+shortList+'</span></td>';
       html += '<td><span style="font-size:11px;font-weight:600;color:'+(m.fecha?'#059669':'#94a3b8')+'">'+(m.fecha||'—')+'</span></td>';
       html += '<td style="font-size:11px;color:#64748b">'+(m.hora||'—')+'</td>';
       html += '<td><span style="font-family:monospace;font-size:10px;color:'+(m.vin?'#0f172a':'#94a3b8')+'">'+(m.vin||'—')+'</span></td>';
