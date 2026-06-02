@@ -310,22 +310,42 @@ function renderWho(){
   });
 }
 
+function getInitials(name){
+  var parts=name.trim().split(' ');
+  if(parts.length>=2) return (parts[0][0]+parts[parts.length-1][0]).toUpperCase();
+  return name.substring(0,2).toUpperCase();
+}
+function getAvatarColor(name){
+  var colors=['#1d4ed8','#7c3aed','#059669','#d97706','#dc2626','#0369a1','#065f46','#92400e'];
+  var idx=0;
+  for(var i=0;i<name.length;i++) idx+=name.charCodeAt(i);
+  return colors[idx%colors.length];
+}
+
 function renderWhoManual(){
   var html='<div class="scroll">';
   html+='<div style="text-align:center;padding:10px 0 18px">';
-  html+='<div style="font-size:11px;font-weight:800;letter-spacing:0.1em;color:#64748b;margin-bottom:8px;text-transform:uppercase">Usuario</div>';
   html+='<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:18px;color:#0c1a35;margin-bottom:4px">¿Quién eres?</div>';
-  html+='<div style="font-size:12px;color:#64748b">No se pudo detectar tu usuario. Selecciona tu nombre.</div>';
+  html+='<div style="font-size:12px;color:#64748b">Selecciona tu nombre para registrar la solicitud</div>';
   html+='</div>';
-  html+='<div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px">';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px">';
   STAFF.forEach(function(name){
     var sel=state.userName===name;
+    var col=getAvatarColor(name);
+    var initials=getInitials(name);
     html+='<button onclick="selectWho(\''+name+'\')" style="'
-      +'background:'+(sel?'#1d4ed8':'white')+';color:'+(sel?'white':'#0f172a')+';'
-      +'border:2px solid '+(sel?'#1d4ed8':'#e2e8f0')+';border-radius:10px;'
-      +'padding:12px 16px;font-family:inherit;font-size:14px;font-weight:700;'
-      +'cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">';
-    html+='<span>'+(sel?'●':'○')+'</span> '+name;
+      +'background:'+(sel?col:'white')+';'
+      +'border:2px solid '+(sel?col:'#e2e8f0')+';'
+      +'border-radius:12px;padding:12px 10px;font-family:inherit;'
+      +'cursor:pointer;display:flex;align-items:center;gap:10px;'
+      +'transition:all 0.15s;text-align:left" '
+      +'onmouseover="if(!'+sel+')this.style.borderColor=\''+col+'\'" '
+      +'onmouseout="if(!'+sel+')this.style.borderColor=\'#e2e8f0\'">';
+    html+='<div style="width:36px;height:36px;border-radius:50%;flex-shrink:0;'
+      +'background:'+(sel?'rgba(255,255,255,0.25)':col)+';'
+      +'display:flex;align-items:center;justify-content:center;'
+      +'font-size:13px;font-weight:800;color:white;letter-spacing:0.02em">'+initials+'</div>';
+    html+='<div style="font-size:12px;font-weight:700;color:'+(sel?'white':'#0f172a')+';line-height:1.2">'+name+'</div>';
     html+='</button>';
   });
   html+='</div>';
@@ -354,19 +374,37 @@ function confirmWho(){
 }
 
 function renderPick(){
-  var html='<div class="scroll"><div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:17px;color:#0c1a35;margin-bottom:4px">Nueva Solicitud de Recambios</div>';
-  html+='<div style="font-size:12px;color:#64748b;margin-bottom:18px">Selecciona el tipo de pedido para cargar la plantilla correspondiente</div>';
-  html+='<div class="tpl-grid">';
+  var TPL_META={
+    airbag:    {color:'#1d4ed8',bg:'#dbeafe',border:'#3b82f6',icon:'AIR',hint:'Recall, campaña o sustitución de airbag'},
+    neumaticos:{color:'#059669',bg:'#d1fae5',border:'#10b981',icon:'NEU',hint:'Cubierta, llanta, equilibrado'},
+    general:   {color:'#7c3aed',bg:'#ede9fe',border:'#8b5cf6',icon:'PED',hint:'Cualquier otra pieza o recambio'},
+  };
+  var html='<div class="scroll">';
+  html+='<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:18px;color:#0c1a35;margin-bottom:4px">Nueva Solicitud</div>';
+  html+='<div style="font-size:12px;color:#64748b;margin-bottom:20px">Selecciona el tipo de pedido</div>';
+  html+='<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">';
   Object.values(TEMPLATES).forEach(function(tpl){
-    html+='<div class="tpl-card" onclick="pickTemplate(\''+tpl.id+'\')">';
-    html+='<div style="font-size:10px;font-weight:800;letter-spacing:0.1em;color:white;background:#0c1a35;border-radius:5px;padding:5px 8px;margin:0 auto 10px;display:inline-block">'+tpl.ico+'</div>';
-    html+='<div class="name">'+tpl.name+'</div>';
-    html+='<div class="desc">'+tpl.desc+'</div>';
+    var m=TPL_META[tpl.id]||{color:'#475569',bg:'#f1f5f9',border:'#94a3b8',icon:'?',hint:''};
+    html+='<div onclick="pickTemplate(\''+tpl.id+'\')" style="'
+      +'display:flex;align-items:center;gap:14px;padding:14px 16px;'
+      +'background:white;border:2px solid '+m.border+';border-radius:12px;'
+      +'cursor:pointer;transition:all 0.15s" '
+      +'onmouseover="this.style.background=\''+m.bg+'\'" '
+      +'onmouseout="this.style.background=\'white\'">';
+    html+='<div style="width:48px;height:48px;border-radius:10px;background:'+m.bg+';'
+      +'display:flex;align-items:center;justify-content:center;flex-shrink:0;'
+      +'font-size:11px;font-weight:800;color:'+m.color+';letter-spacing:0.1em">'+m.icon+'</div>';
+    html+='<div style="flex:1">';
+    html+='<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:15px;color:#0c1a35;margin-bottom:2px">'+tpl.name+'</div>';
+    html+='<div style="font-size:12px;color:#64748b">'+m.hint+'</div>';
+    html+='</div>';
+    html+='<div style="font-size:18px;color:'+m.color+'">›</div>';
     html+='</div>';
   });
   html+='</div>';
-  html+='<div style="display:flex;justify-content:flex-end"><button class="btn btn-ghost btn-sm" onclick="t.closeModal()">Cancelar</button></div>';
-  html+='</div>';
+  html+='<div style="display:flex;justify-content:flex-end">';
+  html+='<button class="btn btn-ghost btn-sm" onclick="t.closeModal()">Cancelar</button>';
+  html+='</div></div>';
   app().innerHTML=html;
   t.sizeTo('#app');
 }
@@ -759,18 +797,43 @@ function createCard(){
   })
   .then(function(card){
     state.saving=false;
-    state.msg={type:'ok',text:'✅ Tarjeta creada correctamente en "'+
-      (state.lists.find(function(l){return l.id===state.selectedList;})||{name:'la lista'}).name+'"'};
     state.step='done';
+    var listName=(state.lists.find(function(l){return l.id===state.selectedList;})||{name:'—'}).name;
+    var v=state.values;
+    var prioStyles={
+      'normal':     'background:#d1fae5;color:#065f46;border:1.5px solid #6ee7b7',
+      'urgente':    'background:#fef3c7;color:#92400e;border:1.5px solid #fbbf24',
+      'muy-urgente':'background:#fee2e2;color:#991b1b;border:1.5px solid #fca5a5'
+    };
+    var prioLabels={'normal':'Normal','urgente':'Urgente','muy-urgente':'Muy urgente'};
     app().innerHTML='<div class="scroll">'
-      +'<div style="text-align:center;padding:30px 16px">'
-      +'<div style="font-size:11px;font-weight:800;letter-spacing:0.1em;color:#059669;margin-bottom:14px">COMPLETADO</div>'
-      +'<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:18px;margin-bottom:8px">Tarjeta creada</div>'
-      +'<div style="font-size:13px;color:#475569;margin-bottom:24px">La solicitud de <b>'+tpl.name+'</b> se ha añadido al tablero</div>'
-      +'<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'
-      +'<button class="btn btn-ghost" onclick="state.step=\'who\';state.values={};state.msg=null;render()">Nueva solicitud</button>'
+      +'<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:#d1fae5;border:2px solid #6ee7b7;border-radius:12px;margin-bottom:18px">'
+      +'<div style="font-size:28px">✅</div>'
+      +'<div><div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:16px;color:#065f46">Tarjeta creada</div>'
+      +'<div style="font-size:12px;color:#059669">Añadida a <b>'+listName+'</b></div></div>'
+      +'</div>'
+      +'<div style="background:white;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:16px">'
+      +'<div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Resumen</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
+      +'<div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;margin-bottom:2px">Matrícula</div>'
+      +'<div style="font-family:monospace;font-weight:800;font-size:15px;color:#0c1a35;letter-spacing:0.06em">'+(v.matricula||'—')+'</div></div>'
+      +'<div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;margin-bottom:2px">Cliente</div>'
+      +'<div style="font-weight:700;font-size:13px;color:#0c1a35">'+(v.cliente||'—')+'</div></div>'
+      +'<div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;margin-bottom:2px">Vehículo</div>'
+      +'<div style="font-size:12px;font-weight:600;color:#0f172a">'+(v.marca||'—')+(v.modelo?' · '+v.modelo:'')+'</div></div>'
+      +'<div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;margin-bottom:2px">Tipo</div>'
+      +'<div style="font-size:12px;font-weight:600;color:#0f172a">'+tpl.name+'</div></div>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+      +'<span style="padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;'+(prioStyles[state.priority]||prioStyles.normal)+'">'+(prioLabels[state.priority]||'Normal')+'</span>'
+      +(v.fecha_cita?'<span style="padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;background:#dbeafe;color:#1e3a8a;border:1.5px solid #93c5fd">📅 '+v.fecha_cita+'</span>':'')
+      +(state.values.sin_cita?'<span style="padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;background:#f1f5f9;color:#475569;border:1.5px solid #94a3b8">Sin cita</span>':'')
+      +'</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">'
+      +'<button class="btn btn-ghost" onclick="state.step=\'who\';state.values={};state.msg=null;state.skipDupCheck=false;render()">Nueva solicitud</button>'
       +'<button class="btn btn-primary" onclick="t.closeModal()">Cerrar</button>'
-      +'</div></div></div>';
+      +'</div></div>';
     t.sizeTo('#app');
   })
   .catch(function(err){
