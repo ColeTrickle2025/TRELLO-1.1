@@ -50,6 +50,18 @@ TrelloPowerUp.initialize({
       },
       {
         icon: { dark: ICON_URL, light: ICON_URL },
+        text: 'Importar ServiceBox',
+        callback: function(t) {
+          return t.modal({
+            url:    BASE_URL + 'import-servicebox.html',
+            title:  'Importar desde ServiceBox',
+            height: 620,
+            fullscreen: false
+          });
+        }
+      },
+      {
+        icon: { dark: ICON_URL, light: ICON_URL },
         text: 'Configuración',
         callback: function(t) {
           return t.modal({
