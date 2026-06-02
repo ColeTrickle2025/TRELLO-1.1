@@ -98,15 +98,45 @@ var MODE=params.get('mode')||'new-request';
 var BRANDS=['Peugeot','Citroën','Opel','Fiat','Alfa Romeo','Lancia','DS Automobiles','Abarth','Jeep','Maserati','Otro'];
 
 var MODELOS={
-  'Peugeot':['208','308','408','508','2008','3008','5008','Partner','Boxer'],
-  'Citroën':['C3','C4','C5X','C3 Aircross','Berlingo','Spacetourer'],
-  'Opel':['Corsa','Astra','Mokka','Crossland','Grandland','Zafira'],
-  'Fiat':['500','Panda','Tipo','Doblò','Ducato'],
-  'Alfa Romeo':['Giulia','Stelvio','Tonale','Giulietta'],
-  'DS Automobiles':['DS3','DS4','DS7','DS9'],
-  'Abarth':['500','595','695'],
-  'Jeep':['Renegade','Compass','Cherokee','Avenger'],
-  'Maserati':['Ghibli','Levante','Quattroporte','Grecale'],
+  'Peugeot':[
+    '107','108','205','206','207','208','301','306','307','308','408','508',
+    '1007','2008','3008','4007','4008','5008',
+    'Bipper','Partner','Rifter','Traveller','Expert','Boxer',
+    'e-208','e-2008','e-308','e-3008','e-5008'
+  ],
+  'Citroën':[
+    'AX','BX','C1','C2','C3','C4','C5','C6','C8',
+    'C3 Aircross','C4 Aircross','C5 Aircross','C5X',
+    'Berlingo','Spacetourer','Jumpy','Jumper','Nemo',
+    'ë-C3','ë-C4','ë-Berlingo','ë-Jumpy','ë-Jumper'
+  ],
+  'Opel':[
+    'Adam','Agila','Antara','Astra','Cascada','Combo',
+    'Corsa','Crossland','Frontera','Grandland','Insignia',
+    'Karl','Meriva','Mokka','Movano','Omega','Signum',
+    'Vectra','Vivaro','Zafira','Zafira Life',
+    'Corsa-e','Mokka-e','Combo-e','Vivaro-e','Movano-e'
+  ],
+  'Fiat':[
+    '124 Spider','500','500L','500X','500e',
+    'Bravo','Croma','Doblò','Ducato',
+    'Fiorino','Freemont','Grande Punto',
+    'Idea','Linea','Multipla','Panda','Punto',
+    'Qubo','Scudo','Sedici','Stilo','Talento','Tipo','Ulysse'
+  ],
+  'Alfa Romeo':[
+    '33','75','145','146','147','155','156','159','164','166',
+    'Brera','GTV','MiTo','Spider',
+    'Giulia','Giulietta','Stelvio','Tonale','4C'
+  ],
+  'Lancia':['Delta','Musa','Phedra','Thema','Voyager','Ypsilon'],
+  'DS Automobiles':['DS3','DS3 Crossback','DS4','DS4 Crossback','DS5','DS7 Crossback','DS9'],
+  'Abarth':['124 Spider','500','595','695','Punto'],
+  'Jeep':[
+    'Avenger','Cherokee','Commander','Compass',
+    'Grand Cherokee','Meridian','Renegade','Wrangler'
+  ],
+  'Maserati':['Ghibli','GranTurismo','GranCabrio','Grecale','Levante','MC20','Quattroporte'],
   'Otro':['Otro modelo']
 };
 
