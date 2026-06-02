@@ -504,17 +504,22 @@ function loadBotonesPanel(){
   if(botonesLists.length){ renderBotonesList(); return; }
   container.innerHTML = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px">Cargando...</div>';
 
-  var key = 'a94def1efe06824418ef1ebc9bd12b4c';
-  var tok = 'ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
+  // Reutilizar loadBoardLists que ya tiene las credenciales correctas
+  loadBoardLists();
 
-  fetch('https://api.trello.com/1/boards/QNEswrD1/lists?key='+key+'&token='+tok+'&filter=open')
-  .then(function(r){ return r.json(); })
-  .then(function(lists){
-    botonesLists = lists;
-    renderBotonesList();
-  }).catch(function(){
-    container.innerHTML = '<div style="font-size:12px;color:#dc2626">Error cargando listas. Verifica las credenciales.</div>';
-  });
+  // Esperar a que boardLists esté disponible
+  var attempts = 0;
+  var wait = setInterval(function(){
+    attempts++;
+    if(boardLists.length > 0){
+      clearInterval(wait);
+      botonesLists = boardLists;
+      renderBotonesList();
+    } else if(attempts > 20){
+      clearInterval(wait);
+      container.innerHTML = '<div style="font-size:12px;color:#dc2626">Error cargando listas. Ve primero a la pestaña "Listas" para conectar con Trello.</div>';
+    }
+  }, 300);
 }
 
 function renderBotonesList(){
