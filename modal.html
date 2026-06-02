@@ -600,10 +600,8 @@ function renderDupCheck(){
     var cliente=parts[3]||'—';
     var pedidoPor=parts[4]?parts[4].replace('PEDIDO POR ',''):'—';
     // Extraer primera línea de la descripción (estado)
-    var descLines=(card.desc||'').split('
-').filter(function(l){return l.trim()&&!l.startsWith('##')&&!l.startsWith('---')&&!l.startsWith('*');});
-    var descPreview=descLines.slice(0,4).join('
-');
+    var descLines=(card.desc||'').split('\n').filter(function(l){return l.trim()&&!l.startsWith('##')&&!l.startsWith('---')&&!l.startsWith('*');});
+    var descPreview=descLines.slice(0,4).join('\n');
 
     html+='<div style="background:white;border:1.5px solid #fbbf24;border-radius:10px;padding:14px;margin-bottom:10px">';
     html+='<div style="font-weight:800;font-size:13px;color:#0c1a35;margin-bottom:6px">'+card.name+'</div>';
