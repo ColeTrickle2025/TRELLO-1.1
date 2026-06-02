@@ -3,66 +3,140 @@
 <head>
 <meta charset="utf-8">
 <script src="https://p.trellocdn.com/power-up.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Outfit',system-ui,sans-serif;font-size:13px;color:#0f172a;padding:10px}
-.row{display:flex;gap:6px;margin-bottom:7px;align-items:flex-start}
-.lbl{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;
-     letter-spacing:0.04em;min-width:100px;padding-top:1px}
-.val{font-size:12px;color:#0f172a;font-weight:500}
-.chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;
-      border-radius:99px;font-size:11px;font-weight:700;border:1.5px solid}
-.empty{color:#94a3b8;font-size:12px;text-align:center;padding:20px 0}
-.tpl-badge{display:inline-flex;align-items:center;gap:5px;
-  background:#ede9fe;color:#6d28d9;border-radius:6px;
-  padding:3px 8px;font-size:11px;font-weight:700;margin-bottom:10px}
-a{color:#1d4ed8;font-size:12px;font-weight:600}
+body{font-family:'Outfit',system-ui,sans-serif;font-size:12px;color:#0f172a;padding:10px 12px;background:transparent}
+.row{display:flex;gap:6px;margin-bottom:6px;align-items:flex-start}
+.lbl{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;min-width:90px;padding-top:1px;flex-shrink:0}
+.val{font-size:12px;color:#0f172a;font-weight:600}
+.val.mono{font-family:'Courier New',monospace;font-weight:800;letter-spacing:0.06em;font-size:13px}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;border:1.5px solid}
+.type-badge{display:inline-flex;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:800;letter-spacing:0.06em;margin-bottom:8px}
+.empty{color:#94a3b8;font-size:11px;text-align:center;padding:16px 0}
+.divider{height:1px;background:#f1f5f9;margin:6px 0}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-<div id="root"></div>
+<div id="root"><div class="empty" style="color:#cbd5e1;font-size:11px">Cargando...</div></div>
 <script>
-var t=TrelloPowerUp.iframe();
+var t = TrelloPowerUp.iframe();
 
-var TEMPLATES={
-  airbag:{ico:'🛡️',name:'Airbag / Campaña',
-    main:['matricula','cliente','tipo_airbag'],
-    labels:{matricula:'Matrícula',cliente:'Cliente',tipo_airbag:'Tipo airbag',telefono:'Teléfono'}},
-  neumaticos:{ico:'🔄',name:'Neumáticos',
-    main:['matricula','cliente','medida','cantidad','tipo'],
-    labels:{matricula:'Matrícula',cliente:'Cliente',medida:'Medida',cantidad:'Unidades',tipo:'Tipo'}},
-  general:{ico:'📦',name:'Pedido General',
-    main:['referencia','descripcion','cantidad'],
-    labels:{referencia:'Referencia',descripcion:'Descripción',cantidad:'Cantidad',solicitado_por:'Solicitado por'}}
+var PRIO_STYLES = {
+  'muy urgente': 'color:#991b1b;background:#fee2e2;border-color:#fca5a5',
+  'urgente':     'color:#92400e;background:#fef3c7;border-color:#fbbf24',
+  'normal':      'color:#065f46;background:#d1fae5;border-color:#6ee7b7',
 };
-var PRIO_STYLES={
-  'normal':      'background:#d1fae5;border-color:#6ee7b7;color:#065f46',
-  'urgente':     'background:#fef3c7;border-color:#fbbf24;color:#92400e',
-  'muy-urgente': 'background:#fee2e2;border-color:#fca5a5;color:#991b1b'
+var TYPE_STYLES = {
+  'airbag':    'color:#1d4ed8;background:#dbeafe',
+  'neumaticos':'color:#065f46;background:#d1fae5',
+  'general':   'color:#7c3aed;background:#ede9fe',
 };
-var PRIO_LABELS={normal:'🟢 Normal',urgente:'⚠️ Urgente','muy-urgente':'🔴 Muy urgente'};
 
-t.get('card','shared','pedido-data').then(function(data){
-  var root=document.getElementById('root');
-  if(!data){
-    root.innerHTML='<div class="empty">Sin datos de plantilla<br><a href="#" onclick="return false">Añadir desde tarjeta →</a></div>';
-    t.sizeTo('body');return;
-  }
-  var tpl=TEMPLATES[data.template]||{ico:'📦',name:'Pedido',main:[],labels:{}};
-  var v=data.fields||{};
-  var html='<div class="tpl-badge">'+tpl.ico+' '+tpl.name+'</div>';
+t.card('desc','name').then(function(card){
+  var root = document.getElementById('root');
+  var desc = card.desc || '';
 
-  tpl.main.forEach(function(k){
-    var val=v[k];if(!val)return;
-    html+='<div class="row"><div class="lbl">'+(tpl.labels[k]||k)+'</div>';
-    html+='<div class="val">'+val+'</div></div>';
-  });
-  if(data.priority){
-    html+='<div class="row"><div class="lbl">Prioridad</div>';
-    html+='<div class="val"><span class="chip" style="'+PRIO_STYLES[data.priority]+'">'+(PRIO_LABELS[data.priority]||data.priority)+'</span></div></div>';
+  // Detectar si es tarjeta del Power-Up
+  if(!desc || desc.indexOf('Stellantis Recambios') === -1){
+    root.innerHTML = '';
+    t.sizeTo('body');
+    return;
   }
-  root.innerHTML=html;
+
+  // Parsear campos de la descripción
+  function extract(label){
+    var patterns = [
+      new RegExp(label+'[:\\s]+\\*\\*([^*\\n]+)\\*\\*','i'),
+      new RegExp(label+'[:\\s]+([^\\n]+)','i')
+    ];
+    for(var i=0;i<patterns.length;i++){
+      var m=desc.match(patterns[i]);
+      if(m) return m[1].trim().replace(/\*\*/g,'').trim();
+    }
+    return null;
+  }
+
+  var matricula  = extract('Matrícula') || extract('Matricula');
+  var cliente    = extract('Cliente');
+  var vehiculo   = extract('Vehículo') || extract('Vehiculo');
+  var estado     = extract('Estado');
+  var fechaCita  = extract('Fecha cita');
+  var prioridad  = extract('Prioridad');
+  var pedidoPor  = extract('Pedido por');
+  var quéNec     = extract('Qué necesita') || extract('Que necesita');
+  var tipoAirbag = extract('Tipo airbag');
+  var medida     = extract('Medida');
+
+  // Detectar tipo por título
+  var name = (card.name||'').toUpperCase();
+  var tipo = name.indexOf('[AIRBAG]')!==-1 ? 'airbag'
+           : name.indexOf('[NEUMATICOS]')!==-1 ? 'neumaticos'
+           : name.indexOf('[PEDIDO]')!==-1 ? 'general' : null;
+
+  var typeStyle = tipo ? TYPE_STYLES[tipo] : 'color:#475569;background:#f1f5f9';
+  var typeLabel = tipo==='airbag' ? 'AIRBAG'
+                : tipo==='neumaticos' ? 'NEUMÁTICOS'
+                : tipo==='general' ? 'PEDIDO'
+                : 'PEDIDO';
+
+  var html = '';
+
+  // Badge tipo
+  html += '<div class="type-badge" style="'+typeStyle+'">'+typeLabel+'</div>';
+
+  // Matrícula + Cliente
+  if(matricula){
+    html+='<div class="row"><div class="lbl">Matrícula</div><div class="val mono">'+matricula+'</div></div>';
+  }
+  if(cliente){
+    html+='<div class="row"><div class="lbl">Cliente</div><div class="val">'+cliente+'</div></div>';
+  }
+  if(vehiculo){
+    html+='<div class="row"><div class="lbl">Vehículo</div><div class="val">'+vehiculo+'</div></div>';
+  }
+
+  // Campo específico por tipo
+  if(tipoAirbag){
+    html+='<div class="row"><div class="lbl">Airbag</div><div class="val">'+tipoAirbag+'</div></div>';
+  }
+  if(medida){
+    html+='<div class="row"><div class="lbl">Medida</div><div class="val mono">'+medida+'</div></div>';
+  }
+  if(quéNec){
+    html+='<div class="row"><div class="lbl">Necesita</div><div class="val" style="font-size:11px">'+quéNec.substring(0,60)+(quéNec.length>60?'…':'')+'</div></div>';
+  }
+
+  if(fechaCita || prioridad || pedidoPor){
+    html+='<div class="divider"></div>';
+  }
+
+  // Fecha cita
+  if(fechaCita && fechaCita.toLowerCase()!=='sin asignar'){
+    var today=new Date().toISOString().split('T')[0];
+    var diff=Math.round((new Date(fechaCita)-new Date(today))/864e5);
+    var citaStyle='color:#1e3a8a;background:#dbeafe;border-color:#93c5fd';
+    var citaLabel=fechaCita;
+    if(diff<0) {citaStyle='color:#991b1b;background:#fee2e2;border-color:#fca5a5'; citaLabel='Vencida';}
+    else if(diff===0) {citaStyle='color:#92400e;background:#fef3c7;border-color:#fbbf24'; citaLabel='Hoy';}
+    else if(diff===1) {citaStyle='color:#92400e;background:#fef3c7;border-color:#fbbf24'; citaLabel='Mañana';}
+    html+='<div class="row"><div class="lbl">Cita</div>'
+      +'<div class="val"><span class="badge" style="'+citaStyle+'">'+citaLabel+'</span></div></div>';
+  }
+
+  // Prioridad
+  if(prioridad){
+    var ps=PRIO_STYLES[prioridad.toLowerCase()]||PRIO_STYLES['normal'];
+    html+='<div class="row"><div class="lbl">Prioridad</div>'
+      +'<div class="val"><span class="badge" style="'+ps+'">'+prioridad.toUpperCase()+'</span></div></div>';
+  }
+
+  // Pedido por
+  if(pedidoPor){
+    html+='<div class="row"><div class="lbl">Pedido por</div><div class="val" style="color:#7c3aed;font-weight:700">'+pedidoPor+'</div></div>';
+  }
+
+  root.innerHTML = html;
   t.sizeTo('body');
 });
 </script>
