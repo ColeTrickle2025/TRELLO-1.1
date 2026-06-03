@@ -470,8 +470,8 @@ function loadBoardLists(){
   if(boardLists.length){ renderListMapper(); return; }
   mapper.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:20px">Cargando...</div>';
 
-  var key = config.credentials.key || getVal('cred-key');
-  var tok = config.credentials.token || getVal('cred-token');
+  var key = config.credentials.key || getVal('cred-key') || 'a94def1efe06824418ef1ebc9bd12b4c';
+  var tok = config.credentials.token || getVal('cred-token') || 'ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
   var boardId = 'QNEswrD1';
 
   fetch('https://api.trello.com/1/boards/'+boardId+'/lists?key='+key+'&token='+tok+'&filter=open')
@@ -659,8 +659,8 @@ function saveAll(){
 
 // ── Verify credentials ────────────────────────────────────────────────────
 function testCredentials(){
-  var key = getVal('cred-key');
-  var tok = getVal('cred-token');
+  var key = getVal('cred-key') || 'a94def1efe06824418ef1ebc9bd12b4c';
+  var tok = getVal('cred-token') || 'ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
   var msg = document.getElementById('cred-msg');
   if(!key||!tok){ msg.innerHTML='<div class="alert alert-warn">Introduce el API Key y Token primero</div>'; return; }
   msg.innerHTML='<div class="alert alert-info">Verificando...</div>';
