@@ -715,7 +715,9 @@ function createCard(){
       titleParts.push('[NEUMATICOS]');
       titleParts.push(v.matricula||'?');
       titleParts.push(medidaCompleta);
-      titleParts.push((v.cantidad||'').replace(' neumático','').replace(' neumáticos','')+'u');
+      // Extraer solo el número de la cantidad: "4 neumáticos" → "4 uds."
+      var cantNum=(v.cantidad||'').replace(/[^0-9]/g,'');
+      if(cantNum) titleParts.push(cantNum+' uds.');
       titleParts.push(marcaModelo);
       titleParts.push((v.cliente||'?').toUpperCase());
     }
