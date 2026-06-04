@@ -236,28 +236,49 @@ function matchRows(rows, cards){
 function updateDescription(desc, vin, fecha, hora){
   var newDesc = desc;
 
-  // Update VIN if we have one and the description has it
+  // ── Actualizar o INSERTAR VIN ─────────────────────────────────────────
   if(vin){
-    newDesc = newDesc.replace(/(VIN[:\s]+`?)[A-Z0-9]{5,17}(`?)/gi,
-      function(m, pre, post){ return pre + vin + post; });
-    // If VIN was empty (—)
-    newDesc = newDesc.replace(/(VIN[:\s]+`?)—(`?)/gi,
-      function(m, pre, post){ return pre + vin + post; });
+    var hasVinLine = /VIN\s*[:\/]/i.test(newDesc) || /Bastidor/i.test(newDesc);
+
+    if(hasVinLine){
+      // Reemplazar VIN existente (con valor o vacío/—)
+      newDesc = newDesc.replace(/((?:VIN|Bastidor)[:\s]+`?)[A-Z0-9\-]{5,20}(`?)/gi,
+        function(m, pre, post){ return pre + vin + post; });
+      newDesc = newDesc.replace(/((?:VIN|Bastidor)[:\s]+`?)—(`?)/gi,
+        function(m, pre, post){ return pre + vin + post; });
+    } else {
+      // La descripción no tiene campo VIN — insertar después de la línea de matrícula
+      var vinLine = '\n🔑 VIN/Bastidor: **' + vin + '**';
+      // Buscar línea de matrícula para insertar debajo
+      if(newDesc.match(/Matr[íi]cula[:\s]+\*\*/i)){
+        newDesc = newDesc.replace(/(Matr[íi]cula[:\s]+\*\*[^\n]+\*\*)/i,
+          function(m){ return m + vinLine; });
+      } else {
+        // Si no hay línea de matrícula, añadir al final antes de la firma
+        var firma = '\n\n---\n*Generado con Stellantis Recambios Power-Up*';
+        if(newDesc.indexOf('Generado con Stellantis') !== -1){
+          newDesc = newDesc.replace(/\n---\n\*Generado con Stellantis[^\n]*\*/,
+            vinLine + '\n---\n*Generado con Stellantis Recambios Power-Up*');
+        } else {
+          newDesc = newDesc + vinLine;
+        }
+      }
+    }
   }
 
-  // Update fecha de cita if we have one
+  // ── Actualizar fecha de cita ──────────────────────────────────────────
   if(fecha){
-    var fechaDisplay = fecha; // YYYY-MM-DD
-    // Convert to DD/MM/YYYY for display
     var parts = fecha.split('-');
-    if(parts.length === 3){
-      fechaDisplay = parts[2]+'/'+parts[1]+'/'+parts[0];
-    }
-    var horaStr = hora ? ' ' + hora : '';
+    var fechaDisplay = parts.length===3
+      ? parts[2]+'/'+parts[1]+'/'+parts[0]
+      : fecha;
+    var horaStr = hora ? ' · ' + hora : '';
 
-    newDesc = newDesc.replace(/(Fecha cita[:\s]+\*\*)[^\*\n]+(\*\*)/gi,
+    // Reemplazar fecha existente en negrita
+    newDesc = newDesc.replace(/(Fecha[^:\n]*:[\s]+\*\*)[^\*\n]+(\*\*)/gi,
       function(m, pre, post){ return pre + fechaDisplay + horaStr + post; });
-    newDesc = newDesc.replace(/(Fecha cita[:\s]+)Sin asignar/gi,
+    // Reemplazar fecha sin negrita
+    newDesc = newDesc.replace(/(Fecha[^:\n]*:[\s]+)(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}|Sin asignar)/gi,
       function(m, pre){ return pre + fechaDisplay + horaStr; });
   }
 
