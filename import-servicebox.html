@@ -211,13 +211,24 @@ function loadTrelloCards(){
 }
 
 // ── Match rows to Trello cards ────────────────────────────────────────────
+function normDate(d){
+  // Normalize to YYYY-MM-DD for comparison
+  if(!d) return '';
+  d = String(d).trim();
+  // Already YYYY-MM-DD
+  if(d.match(/^\d{4}-\d{2}-\d{2}/)) return d.substring(0,10);
+  // DD/MM/YYYY
+  var m = d.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m) return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
+  return d.substring(0,10);
+}
+
 function matchRows(rows, cards){
   return rows.map(function(row){
     var match = null;
     var rMat = normMat(row.matricula);
     for(var i=0; i<cards.length; i++){
       var card = cards[i];
-      // Extract matricula from card title: [TIPO] - MATRICULA - ...
       var parts = card.name.split(' - ');
       var cardMat = parts.length > 1 ? normMat(parts[1]) : normMat(card.name);
       if(cardMat === rMat){
@@ -225,9 +236,37 @@ function matchRows(rows, cards){
         break;
       }
     }
+
+    var status = match ? 'match' : 'nomatch';
+    var alreadyDone = false;
+
+    if(match){
+      // Comprobar si ya está actualizado (misma fecha y VIN)
+      var cardDue = match.due ? normDate(match.due) : '';
+      var rowDue  = row.fecha ? normDate(row.fecha) : '';
+
+      // Extraer VIN actual de la descripción
+      var vinMatch = (match.desc||'').match(/(?:VIN|Bastidor)[:\s]+\*?\*?([A-Z0-9]{5,20})\*?\*?/i);
+      var cardVin = vinMatch ? vinMatch[1].trim() : '';
+      var rowVin  = row.vin || '';
+
+      var dateOk = !rowDue || (cardDue === rowDue);
+      var vinOk  = !rowVin || (cardVin.toUpperCase() === rowVin.toUpperCase());
+
+      // Estado entrega: si la tarjeta ya está archivada, no volver a archivar
+      var alreadyArchived = match.closed === true;
+      var isEntrega = row.estado && row.estado.toLowerCase().trim() === 'entrega';
+
+      if(dateOk && vinOk && (!isEntrega || alreadyArchived)){
+        alreadyDone = true;
+        status = 'done';
+      }
+    }
+
     return Object.assign({}, row, {
       trelloCard: match,
-      status: match ? 'match' : 'nomatch'
+      status: status,
+      alreadyDone: alreadyDone
     });
   });
 }
@@ -399,21 +438,23 @@ function processFiles(){
 // ── PREVIEW ───────────────────────────────────────────────────────────────
 function renderPreview(){
   var matched   = state.matches.filter(function(m){ return m.status==='match'; });
+  var alreadyOk = state.matches.filter(function(m){ return m.status==='done'; });
   var unmatched = state.matches.filter(function(m){ return m.status==='nomatch'; });
 
   var toUpdate = matched.filter(function(m){
-    return m.fecha || m.vin;
+    return (m.fecha || m.vin) && !m.alreadyDone;
   });
   var toArchive = matched.filter(function(m){
-    return m.estado && m.estado.toLowerCase().trim() === 'entrega';
+    return m.estado && m.estado.toLowerCase().trim() === 'entrega' && !m.alreadyDone;
   });
 
   var html = '<div>';
 
   // Stats
-  html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">';
+  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">';
   html += statCard('Total', state.matches.length, '#0f172a', '#f8fafc', '#e2e8f0');
-  html += statCard('Coinciden', matched.length, '#065f46', '#d1fae5', '#6ee7b7');
+  html += statCard('Actualizar', matched.length, '#065f46', '#d1fae5', '#6ee7b7');
+  html += statCard('Ya al día', alreadyOk.length, '#1d4ed8', '#dbeafe', '#93c5fd');
   html += statCard('Sin tarjeta', unmatched.length, '#64748b', '#f1f5f9', '#cbd5e1');
   html += '</div>';
 
@@ -456,6 +497,17 @@ function renderPreview(){
       html += '</tr>';
     });
     html += '</tbody></table></div></div>';
+  }
+
+  // Ya actualizados (collapsible)
+  if(alreadyOk.length > 0){
+    html += '<details style="margin-bottom:10px">';
+    html += '<summary style="font-size:12px;font-weight:700;color:#1d4ed8;cursor:pointer;padding:6px 0">✓ Ya actualizados — sin cambios ('+alreadyOk.length+')</summary>';
+    html += '<div style="font-size:11px;color:#64748b;padding:8px 0">';
+    alreadyOk.forEach(function(m){
+      html += '<div style="padding:3px 0">'+m.matriculaRaw+' — fecha y VIN ya coinciden con ServiceBox</div>';
+    });
+    html += '</div></details>';
   }
 
   // Unmatched (collapsible)
