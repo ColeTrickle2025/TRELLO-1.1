@@ -324,9 +324,7 @@ function detectNoShows(rows, cards){
     var CON_CITA_LIST = '68a6d0d6a3dc70045ddd13ee';
     if(card.idList !== CON_CITA_LIST) return;
 
-    var ppMatch = (card.desc||'').match(/Pedido por[^*
-]*\*?\*?([^
-*]+)/i);
+    var ppMatch = (card.desc||'').match(/Pedido por[^\n:*]+[:\s]+\*?\*?([^\n*]+)/i);
     var pedidoPor = ppMatch ? ppMatch[1].trim().replace(/\*\*/g,'').trim() : '';
     var staff = getStaffByName(pedidoPor);
 
