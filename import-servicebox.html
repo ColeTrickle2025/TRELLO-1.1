@@ -58,15 +58,41 @@ var t = TrelloPowerUp.iframe();
 var API_KEY   = 'a94def1efe06824418ef1ebc9bd12b4c';
 var API_TOKEN = 'ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
 var BOARD_ID  = 'QNEswrD1';
+var NOTIF_KEY = 'noshow-notifications';
+
+// ── Staff: nombre → {username, listId SIN CITA} ────────────────────────
+var STAFF_MAP = [
+  {names:['J. OLIVER','J.OLIVER','JOAN OLIVER','OLIVER'],  user:'joan85089462',    listId:'69a6c24fef3798bd7e680e8b'},
+  {names:['RAUL','RAUL VERA'],                              user:'raulvera27',      listId:'69f21c8451c079bf1a2a3e20'},
+  {names:['CHARLY','CARLOS CHACON','CARLES CHACON'],        user:'carleschacon4',   listId:'69f21c945b3ef6ba7cfcfc6d'},
+  {names:['JORDI F.','JORDI FARRERONS','JORDI'],            user:'jordifarrerons',  listId:'69f22828cd309506fef4e59d'},
+];
+// Fallback rotation index for unknown creators
+var _rotIdx = 0;
+
+function getStaffByName(name){
+  if(!name) return null;
+  var n = name.toUpperCase().trim();
+  for(var i=0;i<STAFF_MAP.length;i++){
+    for(var j=0;j<STAFF_MAP[i].names.length;j++){
+      if(n.indexOf(STAFF_MAP[i].names[j].toUpperCase())!==-1) return STAFF_MAP[i];
+    }
+  }
+  // Unknown creator → rotate between the 4
+  var s = STAFF_MAP[_rotIdx % STAFF_MAP.length];
+  _rotIdx++;
+  return s;
+}
 
 // ── State ────────────────────────────────────────────────────────────────
 var state = {
-  step: 'upload',    // upload | preview | processing | done
+  step: 'upload',
   files: [],
-  rows: [],          // parsed rows from all files
-  matches: [],       // rows matched to Trello cards
-  boardCards: null,  // cached Trello cards
-  results: [],       // update results
+  rows: [],
+  matches: [],
+  noShows: [],
+  boardCards: null,
+  results: [],
   msg: null
 };
 
@@ -272,6 +298,51 @@ function matchRows(rows, cards){
 }
 
 // ── Build new description updating VIN and fecha cita ────────────────────
+// ── DETECT NO-SHOWS ──────────────────────────────────────────────────────
+function detectNoShows(rows, cards){
+  var today = new Date();
+  today.setHours(0,0,0,0);
+  var noShows = [];
+
+  rows.forEach(function(row){
+    var estado = (row.estado||'').toLowerCase().trim();
+    if(estado !== 'a recepcionar') return;
+    if(!row.fecha) return;
+
+    var citaDate = new Date(row.fecha);
+    citaDate.setHours(0,0,0,0);
+    if(citaDate >= today) return;
+
+    var rMat = normMat(row.matricula);
+    var card = null;
+    for(var i=0;i<cards.length;i++){
+      var parts = cards[i].name.split(' - ');
+      if(parts.length>1 && normMat(parts[1])===rMat){ card=cards[i]; break; }
+    }
+    if(!card) return;
+
+    var CON_CITA_LIST = '68a6d0d6a3dc70045ddd13ee';
+    if(card.idList !== CON_CITA_LIST) return;
+
+    var ppMatch = (card.desc||'').match(/Pedido por[^*
+]*\*?\*?([^
+*]+)/i);
+    var pedidoPor = ppMatch ? ppMatch[1].trim().replace(/\*\*/g,'').trim() : '';
+    var staff = getStaffByName(pedidoPor);
+
+    noShows.push({
+      card: card,
+      matricula: row.matriculaRaw||row.matricula,
+      cliente: row.cliente||'—',
+      fecha: row.fecha,
+      hora: row.hora||'',
+      pedidoPor: pedidoPor,
+      staff: staff
+    });
+  });
+  return noShows;
+}
+
 function updateDescription(desc, vin, fecha, hora){
   var newDesc = desc;
 
@@ -340,6 +411,75 @@ function updateTrelloCard(cardId, dueDate, newDesc){
   }).then(function(r){
     if(!r.ok) throw new Error('HTTP '+r.status);
     return r.json();
+  });
+}
+
+// ── PROCESS NO-SHOWS ─────────────────────────────────────────────────────
+function processNoShows(){
+  var ns = state.noShows || [];
+  if(!ns.length) return Promise.resolve();
+
+  var today = new Date().toISOString().split('T')[0];
+
+  return Promise.all(ns.map(function(n){
+    var staff   = n.staff;
+    var listId  = staff ? staff.listId : '69a6c24fef3798bd7e680e8b'; // fallback J.Oliver
+    var comment = '⚠️ Cliente no se presentó a la cita del '
+      + n.fecha + (n.hora ? ' a las ' + n.hora : '')
+      + '. Pendiente de contactar para nueva cita.';
+
+    return fetch('https://api.trello.com/1/cards/'+n.card.id
+      +'?key='+API_KEY+'&token='+API_TOKEN, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ idList: listId })
+    })
+    .then(function(){
+      return fetch('https://api.trello.com/1/cards/'+n.card.id+'/actions/comments'
+        +'?key='+API_KEY+'&token='+API_TOKEN, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ text: comment })
+      });
+    })
+    .then(function(){
+      // Save notification for the responsible person
+      return saveNotification(staff, n, today);
+    })
+    .catch(function(e){ console.error('noshow error', e); });
+  }));
+}
+
+// Save notification to Trello board data so responsible sees it on next open
+function saveNotification(staff, n, date){
+  return t.get('board','shared', NOTIF_KEY)
+  .then(function(existing){
+    var data = existing || {};
+    var key  = staff ? staff.user : 'all';
+    if(!data[key]) data[key] = [];
+    data[key].push({
+      id:        n.card.id,
+      matricula: n.matricula,
+      cliente:   n.cliente,
+      fecha:     n.fecha,
+      hora:      n.hora,
+      pedidoPor: n.pedidoPor,
+      date:      date,
+      seen:      false
+    });
+    return t.set('board','shared', NOTIF_KEY, data);
+  }).catch(function(){
+    // Fallback to member scope
+    return t.get('member','private', NOTIF_KEY).then(function(ex){
+      var data = ex || {};
+      var key  = staff ? staff.user : 'all';
+      if(!data[key]) data[key] = [];
+      data[key].push({
+        id: n.card.id, matricula: n.matricula, cliente: n.cliente,
+        fecha: n.fecha, seen: false, date: date
+      });
+      return t.set('member','private', NOTIF_KEY, data);
+    });
   });
 }
 
@@ -424,7 +564,8 @@ function processFiles(){
 
     // Load Trello cards and match
     return loadTrelloCards().then(function(cards){
-      state.matches = matchRows(state.rows, cards);
+      state.matches  = matchRows(state.rows, cards);
+      state.noShows  = detectNoShows(state.rows, cards);
       state.step = 'preview';
       render();
     });
@@ -521,14 +662,39 @@ function renderPreview(){
     html += '</div></details>';
   }
 
+  // ── No presentados ──────────────────────────────────────────────────────
+  var ns = state.noShows || [];
+  if(ns.length > 0){
+    html += '<div class="card" style="border:2px solid #fbbf24;margin-bottom:10px">';
+    html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">';
+    html += '<div style="font-size:22px">⚠️</div>';
+    html += '<div><div style="font-weight:800;font-size:14px;color:#92400e">'+ns.length+' cliente'+(ns.length>1?'s no se presentaron':'no se presentó')+'</div>';
+    html += '<div style="font-size:11px;color:#b45309">Se moverán a la columna SIN CITA y se notificará al responsable</div></div></div>';
+    html += '<table><thead><tr><th>Matrícula</th><th>Cliente</th><th>Cita</th><th>Pedido por</th><th>Destino</th></tr></thead><tbody>';
+    ns.forEach(function(n){
+      var destName = n.staff ? n.staff.names[0]+' / SIN CITA' : 'SIN CITA';
+      html += '<tr>'
+        +'<td style="font-family:monospace;font-weight:800">'+n.matricula+'</td>'
+        +'<td>'+n.cliente+'</td>'
+        +'<td style="color:#dc2626;font-weight:600">'+n.fecha+(n.hora?' '+n.hora:'')+'</td>'
+        +'<td style="font-size:11px">'+n.pedidoPor+'</td>'
+        +'<td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:#fef3c7;color:#92400e;border:1.5px solid #fbbf24">'+destName+'</span></td>'
+        +'</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+
   html += '<div style="display:flex;justify-content:space-between;margin-top:14px">';
   html += '<button class="btn btn-ghost" onclick="state.step=\'upload\';render()">← Volver</button>';
   var totalActions = toUpdate.length + toArchive.length;
-  if(totalActions > 0){
+  var nsCount = (state.noShows||[]).length;
+  var grandTotal = totalActions + nsCount;
+  if(grandTotal > 0){
     var btnLabel = [];
-    if(toUpdate.length > 0) btnLabel.push('Actualizar '+toUpdate.length);
+    if(toUpdate.length > 0)  btnLabel.push('Actualizar '+toUpdate.length);
     if(toArchive.length > 0) btnLabel.push('Archivar '+toArchive.length);
-    html += '<button class="btn btn-primary" onclick="startUpdate()">✅ '+btnLabel.join(' · ')+' tarjeta'+(totalActions>1?'s':'')+'</button>';
+    if(nsCount > 0)          btnLabel.push('Mover '+nsCount+' no presentados');
+    html += '<button class="btn btn-primary" onclick="startUpdate()">✅ '+btnLabel.join(' · ')+'</button>';
   }
   html += '</div></div>';
 
@@ -577,8 +743,11 @@ function startUpdate(){
 
   function next(){
     if(updateIndex >= allActions.length){
-      state.step = 'done';
-      render();
+      // Process no-shows after main updates
+      processNoShows().then(function(){
+        state.step = 'done';
+        render();
+      });
       return;
     }
     var m = allActions[updateIndex];
@@ -637,6 +806,35 @@ function renderDone(){
     +'<div><div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:15px;color:#065f46">Importación completada</div>'
     +'<div style="font-size:12px;color:#059669"><b>'+ok.length+'</b> tarjetas actualizadas'+(err.length>0?' · <b>'+err.length+'</b> errores':'')+'</div></div>'
     +'</div>';
+
+  // No-shows summary
+  var ns = state.noShows || [];
+  if(ns.length > 0){
+    html += '<div class="card" style="border-color:#fbbf24">';
+    html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'
+      +'<div style="font-size:22px">⚠️</div>'
+      +'<div><div style="font-weight:800;font-size:14px;color:#92400e">'+ns.length+' cliente'+(ns.length>1?'s no se presentaron':'no se presentó')+'</div>'
+      +'<div style="font-size:11px;color:#b45309">Tarjetas movidas a columna SIN CITA · Responsables notificados</div></div>'
+      +'</div>';
+    // Group by staff
+    var byStaff = {};
+    ns.forEach(function(n){
+      var k = n.staff ? n.staff.names[0] : 'Sin asignar';
+      if(!byStaff[k]) byStaff[k] = [];
+      byStaff[k].push(n);
+    });
+    Object.keys(byStaff).forEach(function(k){
+      html += '<div style="font-size:11px;font-weight:700;color:#92400e;margin:8px 0 4px">'+k+'</div>';
+      byStaff[k].forEach(function(n){
+        html += '<div style="font-size:11px;padding:3px 0;color:#0f172a">'
+          +'<span style="font-family:monospace;font-weight:800">'+n.matricula+'</span>'
+          +' — '+n.cliente
+          +' <span style="color:#dc2626">(cita: '+n.fecha+(n.hora?' '+n.hora:'')+')</span>'
+          +'</div>';
+      });
+    });
+    html += '</div>';
+  }
 
   if(ok.length > 0){
     html += '<div class="card">';

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<script src="https://p.trellocdn.com/power-up.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:#fffbeb;padding:14px;font-size:13px}
+.header{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1.5px solid #fbbf24}
+.title{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:#92400e}
+.sub{font-size:11px;color:#b45309;margin-top:2px}
+.item{background:white;border:1.5px solid #fbbf24;border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.mat{font-family:'Courier New',monospace;font-weight:800;font-size:14px;color:#0c1a35}
+.cli{font-size:12px;font-weight:600;color:#0f172a;margin:2px 0}
+.det{font-size:11px;color:#64748b}
+.cita{color:#dc2626;font-weight:700}
+.btn{border:none;border-radius:7px;padding:7px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;width:100%;margin-top:10px;background:#1d4ed8;color:white}
+.btn-ok{background:#d1fae5;color:#065f46;border:1.5px solid #6ee7b7}
+</style>
+</head>
+<body>
+<div id="app"><div style="text-align:center;padding:20px;color:#94a3b8">Cargando...</div></div>
+<script>
+var t = TrelloPowerUp.iframe();
+var NOTIF_KEY = 'noshow-notifications';
+var API_KEY   = 'a94def1efe06824418ef1ebc9bd12b4c';
+var API_TOKEN = 'ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
+
+var params   = new URLSearchParams(window.location.search);
+var username = params.get('user') || '';
+
+function render(pending){
+  var app = document.getElementById('app');
+  var html = '';
+
+  html += '<div class="header">'
+    +'<div style="font-size:26px">⚠️</div>'
+    +'<div><div class="title">'+pending.length+' cliente'+(pending.length>1?'s no se presentaron':'no se presentó')+'</div>'
+    +'<div class="sub">Son tuyos — tienes que llamarles para dar nueva cita</div></div>'
+    +'</div>';
+
+  pending.forEach(function(n, i){
+    html += '<div class="item">'
+      +'<div class="mat">'+n.matricula+'</div>'
+      +'<div class="cli">'+n.cliente+'</div>'
+      +'<div class="det">Cita: <span class="cita">'+n.fecha+(n.hora?' a las '+n.hora:'')+'</span></div>'
+      +(n.pedidoPor?'<div class="det">Pedido por: '+n.pedidoPor+'</div>':'')
+      +'<a href="https://trello.com/c/'+n.id+'" target="_blank" '
+      +'style="display:inline-block;margin-top:6px;font-size:11px;font-weight:700;color:#1d4ed8">Ver tarjeta →</a>'
+      +'</div>';
+  });
+
+  html += '<button class="btn btn-ok" onclick="markSeen()">✓ Entendido — me encargo</button>';
+
+  app.innerHTML = html;
+  t.sizeTo('#app');
+}
+
+function markSeen(){
+  t.get('board','shared', NOTIF_KEY)
+  .catch(function(){ return t.get('member','private', NOTIF_KEY); })
+  .then(function(data){
+    if(data && data[username]){
+      data[username].forEach(function(n){ n.seen = true; });
+      return t.set('board','shared', NOTIF_KEY, data)
+        .catch(function(){ return t.set('member','private', NOTIF_KEY, data); });
+    }
+  })
+  .then(function(){ t.closePopup(); })
+  .catch(function(){ t.closePopup(); });
+}
+
+// Load
+t.get('board','shared', NOTIF_KEY)
+.catch(function(){ return t.get('member','private', NOTIF_KEY); })
+.then(function(data){
+  if(!data || !username){ t.closePopup(); return; }
+  var pending = (data[username]||[]).filter(function(n){ return !n.seen; });
+  if(!pending.length){ t.closePopup(); return; }
+  render(pending);
+})
+.catch(function(){ t.closePopup(); });
+</script>
+</body>
+</html>

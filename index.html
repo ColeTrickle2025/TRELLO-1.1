@@ -23,6 +23,27 @@ TrelloPowerUp.initialize({
 
   /* ── Dos botones en la cabecera: Nueva Solicitud + ⚙️ Config ── */
   'board-buttons': function(t) {
+    // Check pending no-show notifications for current user
+    var NOTIF_KEY = 'noshow-notifications';
+    Promise.all([
+      t.member('all').catch(function(){ return null; }),
+      t.get('board','shared', NOTIF_KEY).catch(function(){
+        return t.get('member','private', NOTIF_KEY).catch(function(){ return null; });
+      })
+    ]).then(function(res){
+      var member = res[0];
+      var notifs = res[1];
+      if(!member || !notifs) return;
+      var username = member.username || '';
+      var pending  = (notifs[username]||[]).filter(function(n){return !n.seen;});
+      if(!pending.length) return;
+      t.popup({
+        title: '⚠️ Clientes sin presentar ('+pending.length+')',
+        url:    BASE_URL + 'noshow-popup.html?user='+encodeURIComponent(username),
+        height: Math.min(450, 130 + pending.length * 55)
+      });
+    }).catch(function(){});
+
     return [
       {
         icon: { dark: ICON_URL, light: ICON_URL },
