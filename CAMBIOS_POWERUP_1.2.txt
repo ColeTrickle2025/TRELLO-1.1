@@ -1,0 +1,23 @@
+POWER-UP "STELLANTIS RECAMBIOS" 1.2 — 6 de octubre de 2026
+==========================================================
+
+QUÉ CAMBIA
+  - Formulario "Nueva Solicitud":
+      · Airbag: casilla OT (opcional).
+      · Neumáticos: casillas VIN/Bastidor y OT (opcionales).
+      · Pedido general: casillas VIN/Bastidor, OT y Referencia (opcionales).
+    Recambios las lee: con la OT o el bastidor encuentra el pedido, y con la
+    Referencia, "Pasar a pedido" sale con la referencia ya puesta.
+  - "Buscar matrícula / OT" (botón de arriba del tablero):
+      · Busca por matrícula, OT, bastidor, cliente o teléfono (en el título y
+        en la descripción de la tarjeta).
+      · Enseña las piezas de la checklist "Piezas (Recambios)": cuántas han
+        llegado (✅) y cuáles faltan (⏳). Así los recepcionistas ven solos si
+        ha llegado la pieza.
+      · Marca las tarjetas creadas automáticamente por Recambios (🤖).
+
+CÓMO ACTUALIZARLO
+  Igual que cuando lo instalaste: sube estos archivos a tu repositorio de
+  GitHub (encima de los que hay) y espera 2 minutos a que GitHub Pages
+  se actualice. En Trello no hay que tocar nada.
+  Los archivos que cambian son: index.html, modal.html y search.html.
