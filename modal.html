@@ -568,20 +568,31 @@ function submitForm(){
   state.apiToken=API_TOKEN;
 
   var matriculaBuscar=normMatricula(state.values['matricula']||'');
-  if(matriculaBuscar && !state.skipDupCheck){
+  // v1.3: también por bastidor y por OT
+  var vinBuscar=(state.values['vin']||'').toUpperCase().replace(/[\s\-]/g,'');
+  var otBuscar=(state.values['ot']||'').replace(/\D/g,'');
+  if((matriculaBuscar||vinBuscar.length===17||otBuscar.length>=4) && !state.skipDupCheck){
     state.saving=true;
     state.msg={type:'info',text:'Verificando duplicados...'};
     render();
-    fetch('https://api.trello.com/1/boards/QNEswrD1/cards?key='+API_KEY+'&token='+API_TOKEN+'&filter=open&fields=id,name,idList,desc')
-    .then(function(r){return r.json();})
-    .then(function(cards){
+    Promise.all([
+      fetch('https://api.trello.com/1/boards/QNEswrD1/cards?key='+API_KEY+'&token='+API_TOKEN+'&filter=open&fields=id,name,idList,desc&checklists=all').then(function(r){return r.json();}),
+      fetch('https://api.trello.com/1/boards/QNEswrD1/lists?key='+API_KEY+'&token='+API_TOKEN+'&fields=id,name').then(function(r){return r.json();}).catch(function(){return [];})
+    ])
+    .then(function(res){
+      var cards=res[0];
+      state.listNames={};
+      (res[1]||[]).forEach(function(l){state.listNames[l.id]=l.name;});
       // Buscar tarjetas con matrícula coincidente (con o sin E)
       var matches=cards.filter(function(c){
         var cn=normMatricula(c.name);
         // extraer matrícula del título: [TIPO] - MATRICULA - ...
         var parts=c.name.split(' - ');
         var cardMat=parts.length>1?normMatricula(parts[1]):'';
-        return cardMat===matriculaBuscar || cn.indexOf(matriculaBuscar)!==-1;
+        var descN=(c.desc||'').toUpperCase().replace(/[\s\-\*]/g,'');
+        return (matriculaBuscar && (cardMat===matriculaBuscar || cn.indexOf(matriculaBuscar)!==-1))
+          || (vinBuscar.length===17 && descN.indexOf(vinBuscar)!==-1)
+          || (otBuscar.length>=4 && (c.name+' '+(c.desc||'')).replace(/\D+/g,' ').split(' ').indexOf(otBuscar)!==-1);
       });
       state.saving=false;
       if(matches.length>0){
@@ -633,10 +644,10 @@ function renderDupCheck(){
   var dups=state.duplicates||[];
 
   var html='<div class="scroll">';
-  html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:12px 14px;background:#fef3c7;border:2px solid #fbbf24;border-radius:10px">';
-  html+='<div style="font-size:24px;flex-shrink:0">⚠️</div>';
-  html+='<div><div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:15px;color:#92400e">Tarjeta ya existente</div>';
-  html+='<div style="font-size:12px;color:#b45309">Se encontró '+(dups.length>1?dups.length+' tarjetas abiertas':'1 tarjeta abierta')+' con la matrícula <b>'+mat+'</b></div></div>';
+  html+='<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:16px 18px;background:#c62828;border-radius:10px;color:white">';
+  html+='<div style="font-size:34px;flex-shrink:0">⚠️</div>';
+  html+='<div><div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:19px">ESTE COCHE YA TIENE '+(dups.length>1?dups.length+' TARJETAS ABIERTAS':'UNA TARJETA ABIERTA')+'</div>';
+  html+='<div style="font-size:13px;opacity:.95">Matrícula <b>'+(mat||'—')+'</b>. Mira si lo que vas a pedir ya está pedido antes de crear otra.</div></div>';
   html+='</div>';
 
   dups.forEach(function(card){
@@ -649,8 +660,18 @@ function renderDupCheck(){
     var descLines=(card.desc||'').split('\n').filter(function(l){return l.trim()&&!l.startsWith('##')&&!l.startsWith('---')&&!l.startsWith('*');});
     var descPreview=descLines.slice(0,4).join('\n');
 
-    html+='<div style="background:white;border:1.5px solid #fbbf24;border-radius:10px;padding:14px;margin-bottom:10px">';
-    html+='<div style="font-weight:800;font-size:13px;color:#0c1a35;margin-bottom:6px">'+card.name+'</div>';
+    html+='<div style="background:white;border:2px solid #ef9a9a;border-radius:10px;padding:14px;margin-bottom:10px">';
+    html+='<div style="font-weight:800;font-size:13px;color:#0c1a35;margin-bottom:4px">'+card.name+'</div>';
+    var ln=(state.listNames||{})[card.idList];
+    if(ln){ html+='<div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">Lista: '+ln+'</div>'; }
+    // v1.3: piezas que lleva Recambios (checklist «Piezas (Recambios)»)
+    var items=[];
+    (card.checklists||[]).forEach(function(cl){ if(/RECAMBIOS/i.test(cl.name)) (cl.checkItems||[]).forEach(function(i){items.push(i);}); });
+    if(items.length){
+      var ok=items.filter(function(i){return i.state==='complete';}).length;
+      html+='<div style="font-size:11px;font-weight:700;color:#7c3aed;margin-bottom:4px">Piezas en Recambios: '+ok+' de '+items.length+' recibidas</div>';
+      html+='<div style="font-size:11px;color:#334155;margin-bottom:8px;line-height:1.6">'+items.map(function(i){return (i.state==='complete'?'✅ ':'⏳ ')+i.name;}).join('<br>')+'</div>';
+    }
     if(descPreview){
       html+='<div style="font-size:11px;color:#475569;background:#f8fafc;border-radius:6px;padding:8px 10px;margin-bottom:10px;white-space:pre-line;line-height:1.6">'+descPreview+'</div>';
     }
@@ -659,7 +680,7 @@ function renderDupCheck(){
   });
 
   html+='<div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:#1e3a8a">';
-  html+='¿Quieres crear una tarjeta nueva de todas formas? Por ejemplo si es un pedido diferente para el mismo vehículo.';
+  html+='¿Es una pieza DIFERENTE para el mismo coche? Entonces sí, crea la tarjeta. Si es lo mismo, no la crees: ya está pedido.';
   html+='</div>';
 
   html+='<div class="footer">';

@@ -1,0 +1,18 @@
+POWER-UP "STELLANTIS RECAMBIOS" 1.3 — 6 de octubre de 2026
+==========================================================
+(Incluye todo lo de la 1.2: si no subiste la 1.2, sube directamente esta.)
+
+QUÉ CAMBIA
+  - Nueva Solicitud: casillas OT y VIN/Bastidor (y Referencia en Pedido general).
+    Recambios las lee.
+  - "Buscar matrícula / OT": busca por matrícula, OT, bastidor, cliente o teléfono
+    y enseña qué piezas de Recambios han llegado (✅) y cuáles faltan (⏳).
+  - NUEVO 1.3 · Al crear una Nueva Solicitud, si ese coche ya tiene una tarjeta
+    abierta (por matrícula, bastidor u OT), sale un aviso ROJO grande con la
+    tarjeta, la lista en la que está y las piezas que ya lleva Recambios.
+    Así los recepcionistas no duplican pedidos.
+
+CÓMO ACTUALIZARLO
+  Sube a tu repositorio de GitHub (Add file → Upload files) estos 3 archivos:
+  index.html, modal.html y search.html. Commit changes, espera 2 minutos y
+  recarga Trello con Ctrl+F5.
