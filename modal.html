@@ -5,231 +5,161 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Stellantis Recambios</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://p.trellocdn.com/power-up.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Outfit',system-ui,sans-serif;background:#f8fafc;color:#0f172a;font-size:14px}
 :root{
-  --blue:#1d4ed8;--blue-l:#dbeafe;--navy:#0c1a35;
-  --green:#059669;--green-l:#d1fae5;
-  --amber:#d97706;--amber-l:#fef3c7;
-  --red:#dc2626;--red-l:#fee2e2;
-  --border:#e2e8f0;--muted:#64748b;--bg:#f8fafc
+  --ink:#16191D;--ink2:#4A5461;--mut:#6B7684;--soft:#8C96A3;
+  --line:#DFE3E8;--line2:#ECEFF2;--fld:#CFD5DC;
+  --bg:#FFFFFF;--bg2:#F6F7F9;--bg3:#FBFCFD;
+  --ac:#0F4C81;--ac2:#0A3A64;--acs:#E8F0F7;--acb:#C7DCEC;
+  --wn:#B45309;--wns:#FEF6EC;--wnb:#F3DFC4;
+  --ok:#15694A;--oks:#E9F4EF;--okb:#C5E3D6;
+  --dg:#B32D2D
 }
-input,select,textarea{
-  font-family:inherit;border:1.5px solid var(--border);border-radius:7px;
-  padding:7px 11px;font-size:13px;color:#0f172a;background:white;
-  width:100%;outline:none;transition:border 0.15s
-}
-input:focus,select:focus,textarea:focus{border-color:var(--blue)}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);
+  font-size:14px;-webkit-font-smoothing:antialiased}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;letter-spacing:.06em}
+
+/* estructura */
+.wrap{display:flex;flex-direction:column;min-height:100%}
+.head{padding:18px 24px 16px;border-bottom:1px solid var(--line2);display:flex;align-items:center;gap:13px}
+.body{padding:0 24px;flex:1}
+.foot{padding:16px 24px;border-top:1px solid var(--line2);background:var(--bg3);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.foot .hint{flex:1;min-width:150px;font-size:12px;color:var(--mut);line-height:1.45}
+
+/* tipografía */
+h1{font-size:22px;font-weight:700;letter-spacing:-.015em;margin:0 0 4px}
+.sub{font-size:13px;color:var(--ink2);line-height:1.5}
+.ttl{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.mini{font-size:12px;color:var(--mut)}
+.sec{display:flex;align-items:center;gap:10px;padding:20px 0 0}
+.sec b{font-size:11px;font-weight:700;letter-spacing:.11em;color:var(--soft);text-transform:uppercase}
+.sec i{flex:1;height:1px;background:var(--line2);font-style:normal}
+
+/* campos */
+.grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-top:12px}
+.f label,label.lb{display:block;font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--ink2);
+  text-transform:uppercase;margin-bottom:6px}
+.f label .opt{font-weight:500;text-transform:none;letter-spacing:0;color:var(--soft)}
+input,select,textarea{font-family:inherit;font-size:14px;color:var(--ink);background:var(--bg);
+  border:1px solid var(--fld);border-radius:8px;padding:11px 12px;width:100%;min-height:44px;outline:none}
+textarea{resize:vertical;line-height:1.5;min-height:84px}
+input:focus,select:focus,textarea:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(15,76,129,.12)}
+input.bad,select.bad{border-color:var(--dg)}
+select{appearance:none;-webkit-appearance:none;padding-right:34px;background-repeat:no-repeat;
+  background-position:right 11px center;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")}
+.help{font-size:11.5px;color:var(--mut);margin-top:6px;line-height:1.45}
+.err{font-size:11.5px;color:var(--dg);font-weight:600;margin-top:6px}
+
+/* botones */
 button{font-family:inherit;cursor:pointer;border:none;outline:none}
-label{display:block;font-size:11px;font-weight:700;color:var(--muted);
-  text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
-.field{margin-bottom:12px}
-.field.full{grid-column:1/-1}
-.btn{border-radius:7px;padding:8px 16px;font-size:13px;font-weight:700;
-  display:inline-flex;align-items:center;gap:6px;transition:all 0.15s}
-.btn-primary{background:var(--blue);color:white}
-.btn-primary:hover{background:#1e40af}
-.btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--border)}
-.btn-ghost:hover{background:var(--bg)}
-.btn-sm{padding:5px 12px;font-size:12px}
-.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;
-  border-radius:99px;font-size:12px;font-weight:700;border:1.5px solid}
-.section-title{font-size:11px;font-weight:700;color:var(--muted);
-  text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px}
-.alert{padding:10px 13px;border-radius:8px;font-size:13px;margin-bottom:12px}
-.alert-info{background:#eff6ff;border:1.5px solid #bfdbfe;color:#1e3a8a}
-.alert-warn{background:var(--amber-l);border:1.5px solid #fbbf24;color:#92400e}
-.alert-ok{background:var(--green-l);border:1.5px solid #6ee7b7;color:#065f46}
-/* ── Template picker ── */
-.tpl-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
-.tpl-card{background:white;border:2px solid var(--border);border-radius:12px;
-  padding:16px 14px;cursor:pointer;text-align:center;transition:all 0.18s}
-.tpl-card:hover,.tpl-card.sel{border-color:var(--blue);background:var(--blue-l)}
-.tpl-card .ico{font-size:28px;margin-bottom:8px}
-.tpl-card .name{font-size:13px;font-weight:700;color:#0f172a}
-.tpl-card .desc{font-size:11px;color:var(--muted);margin-top:3px}
-/* ── Form container ── */
-.form-wrap{background:white;border:1.5px solid var(--border);border-radius:12px;padding:16px}
-/* ── Footer ── */
-.footer{display:flex;gap:8px;justify-content:flex-end;padding-top:14px;
-  border-top:1.5px solid var(--border);margin-top:14px}
-/* ── List picker ── */
-.list-item{padding:8px 12px;border-radius:8px;cursor:pointer;
-  display:flex;align-items:center;gap:8px;transition:background 0.1s}
-.list-item:hover{background:var(--bg)}
-.list-item.sel{background:var(--blue-l);font-weight:700;color:var(--blue)}
-/* ── Priority ── */
-.prio-wrap{display:flex;gap:8px}
-.prio-btn{flex:1;padding:7px;border-radius:7px;border:1.5px solid var(--border);
-  font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s}
-.prio-btn.sel-normal{background:#d1fae5;border-color:#6ee7b7;color:#065f46}
-.prio-btn.sel-urgente{background:#fef3c7;border-color:#fbbf24;color:#92400e}
-.prio-btn.sel-muy-urgente{background:#fee2e2;border-color:#fca5a5;color:#991b1b}
-/* ── Settings ── */
-.settings-block{background:white;border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px}
-/* ── Card detail ── */
-.detail-row{display:flex;gap:6px;margin-bottom:8px;align-items:flex-start}
-.detail-label{font-size:11px;font-weight:700;color:var(--muted);
-  text-transform:uppercase;letter-spacing:0.04em;min-width:110px;padding-top:2px}
-.detail-val{font-size:13px;color:#0f172a;font-weight:500}
-/* ── Misc ── */
-.tag{background:#ede9fe;color:#6d28d9;padding:3px 9px;border-radius:6px;
-  font-size:11px;font-weight:700;margin-right:4px}
-.scroll{overflow-y:auto;padding:16px}
+.btn{font-size:13.5px;font-weight:600;border-radius:8px;padding:12px 20px;min-height:44px;
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none}
+.btn-p{color:#fff;background:var(--ac)}
+.btn-p:hover{background:var(--ac2)}
+.btn-p[disabled]{opacity:.55;cursor:default}
+.btn-g{color:var(--ink2);background:var(--bg);border:1px solid var(--line);font-weight:500}
+.btn-g:hover{background:var(--bg2)}
+.lnk{color:var(--ac);font-weight:500;text-decoration:none;cursor:pointer;background:none;font-size:12px}
+.lnk:hover{text-decoration:underline}
+.ico-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--bg);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* segmentado */
+.seg{display:flex;border:1px solid var(--fld);border-radius:8px;overflow:hidden}
+.seg button{flex:1;font-size:13px;font-weight:500;color:var(--ink2);background:var(--bg);
+  padding:12px 6px;min-height:44px;border-left:1px solid var(--fld)}
+.seg button:first-child{border-left:none}
+.seg button:hover{background:var(--bg2)}
+.seg button.on{color:#fff;background:var(--ac);font-weight:600}
+.seg button.on:hover{background:var(--ac2)}
+.seg button.wn{color:#fff;background:var(--wn);font-weight:600}
+.seg button.dg{color:#fff;background:var(--dg);font-weight:600}
+
+/* piezas sueltas */
+.badge{width:36px;height:36px;border-radius:9px;background:var(--acs);display:flex;
+  align-items:center;justify-content:center;flex-shrink:0}
+.badge.n{background:#F1F2F4}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;
+  border-radius:99px;padding:4px 11px;border:1px solid var(--line);background:var(--bg2);color:var(--ink2)}
+.chip.ac{background:var(--acs);border-color:var(--acb);color:var(--ac)}
+.chip.ok{background:var(--oks);border-color:var(--okb);color:var(--ok)}
+.chip.wn{background:var(--wns);border-color:var(--wnb);color:var(--wn)}
+.card{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.note{padding:12px 14px;background:var(--bg2);border-radius:9px;font-size:12.5px;color:var(--ink2);line-height:1.5}
+.note.ac{background:var(--acs);border:1px solid var(--acb);color:var(--ac2)}
+.note.wn{background:var(--wns);border:1px solid var(--wnb);color:#6A4A1E}
+.opcion{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--line);
+  border-radius:10px;background:var(--bg);text-decoration:none;min-height:44px;width:100%;text-align:left}
+.opcion:hover{border-color:var(--ac);background:var(--acs)}
+.opcion .t{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.opcion .d{font-size:12.5px;color:var(--ink2);line-height:1.45}
+.pasos{display:flex;align-items:center;gap:8px;padding:16px 24px 0}
+.paso{display:flex;align-items:center;gap:7px}
+.paso span{width:20px;height:20px;border-radius:99px;background:var(--bg);border:1px solid var(--line);
+  color:var(--ink2);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center}
+.paso.on span{background:var(--ac);border-color:var(--ac);color:#fff}
+.paso.dn span{background:var(--acs);border-color:var(--acs)}
+.paso b{font-size:12px;font-weight:500;color:var(--ink2)}
+.paso.on b{font-weight:600;color:var(--ink)}
+.linea{flex:1;height:1px;background:var(--line)}
+.medida{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.medida input,.medida select{width:76px;text-align:center;min-height:44px}
+.medida .sep{color:var(--soft);font-size:16px;font-weight:500}
+.lista{padding:13px 15px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:500;
+  color:var(--ink2);display:flex;align-items:center;gap:9px}
+.lista:hover{background:var(--bg2)}
+.lista.sel{background:var(--acs);color:var(--ac);font-weight:600}
+.recientes{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.recientes button{font-size:12px;background:var(--bg2);border:1px solid var(--line);border-radius:99px;
+  padding:6px 12px;color:var(--ink)}
+.recientes button:hover{border-color:var(--ac);color:var(--ac)}
+.dr{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line2);font-size:13px}
+.dr:last-child{border-bottom:none}
+.dr .k{min-width:150px;font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--soft);
+  text-transform:uppercase;padding-top:2px}
+.dr .v{font-weight:600;color:var(--ink)}
 </style>
 </head>
 <body>
 <div id="app"></div>
-
 <script>
-/* ── helpers ── */
 var t=window.TrelloPowerUp.iframe();
 
 // ── URL del Google Apps Script Web App ──────────────────────────────────
-// Después de desplegar el script, pega aquí la URL que te da Google
 var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwyiZu108CpuTyqPyLtjYJ6AT8WENXd7SPxSKBntbFLwyfkG70EwsY9Om0rQk5lILe-/exec';
+var API_KEY   = 'a94def1efe06824418ef1ebc9bd12b4c';
+var API_TOKEN = 'ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
+var BOARD_ID  = 'QNEswrD1';
+var LISTA_POR_DEFECTO = '68a4531b010b18274c39d3a8';
+
 var params=new URLSearchParams(window.location.search);
 var MODE=params.get('mode')||'new-request';
 
-var BRANDS=['Peugeot','Citroën','Opel','Fiat','Alfa Romeo','Lancia','DS Automobiles','Abarth','Jeep','Maserati','Otro'];
+/* ── marcas que lleva el concesionario ── */
+var BRANDS=['Opel','Citroën','Peugeot','DS Automobiles','Fiat','Fiat Professional','Jeep','Abarth',
+            'Leapmotor','Livan','BAIC','Saab','Otro'];
 
+/* Sugerencias de modelo. Es una lista de ayuda: se puede escribir cualquier otro. */
 var MODELOS={
-  'Peugeot':[
-    '107','108','205','206','207','208','301','306','307','308','408','508',
-    '1007','2008','3008','4007','4008','5008',
-    'Bipper','Partner','Rifter','Traveller','Expert','Boxer',
-    'e-208','e-2008','e-308','e-3008','e-5008'
-  ],
-  'Citroën':[
-    'AX','BX','C1','C2','C3','C4','C5','C6','C8',
-    'C3 Aircross','C4 Aircross','C5 Aircross','C5X',
-    'Berlingo','Spacetourer','Jumpy','Jumper','Nemo',
-    'ë-C3','ë-C4','ë-Berlingo','ë-Jumpy','ë-Jumper'
-  ],
-  'Opel':[
-    'Adam','Agila','Antara','Astra','Cascada','Combo',
-    'Corsa','Crossland','Frontera','Grandland','Insignia',
-    'Karl','Meriva','Mokka','Movano','Omega','Signum',
-    'Vectra','Vivaro','Zafira','Zafira Life',
-    'Corsa-e','Mokka-e','Combo-e','Vivaro-e','Movano-e'
-  ],
-  'Fiat':[
-    '124 Spider','500','500L','500X','500e',
-    'Bravo','Croma','Doblò','Ducato',
-    'Fiorino','Freemont','Grande Punto',
-    'Idea','Linea','Multipla','Panda','Punto',
-    'Qubo','Scudo','Sedici','Stilo','Talento','Tipo','Ulysse'
-  ],
-  'Alfa Romeo':[
-    '33','75','145','146','147','155','156','159','164','166',
-    'Brera','GTV','MiTo','Spider',
-    'Giulia','Giulietta','Stelvio','Tonale','4C'
-  ],
-  'Lancia':['Delta','Musa','Phedra','Thema','Voyager','Ypsilon'],
-  'DS Automobiles':['DS3','DS3 Crossback','DS4','DS4 Crossback','DS5','DS7 Crossback','DS9'],
-  'Abarth':['124 Spider','500','595','695','Punto'],
-  'Jeep':[
-    'Avenger','Cherokee','Commander','Compass',
-    'Grand Cherokee','Meridian','Renegade','Wrangler'
-  ],
-  'Maserati':['Ghibli','GranTurismo','GranCabrio','Grecale','Levante','MC20','Quattroporte'],
-  'Otro':['Otro modelo']
+  'Opel':['Adam','Astra','Combo','Corsa','Corsa-e','Crossland','Frontera','Grandland','Insignia','Karl',
+          'Meriva','Mokka','Mokka-e','Movano','Vivaro','Zafira'],
+  'Citroën':['C1','C3','C3 Aircross','C4','C4 Aircross','C5','C5 Aircross','C5X','Berlingo','Jumpy',
+             'Jumper','Nemo','Spacetourer','ë-C3','ë-C4','ë-Berlingo'],
+  'Peugeot':['107','108','206','207','208','e-208','301','308','e-308','408','508','2008','e-2008',
+             '3008','5008','Bipper','Partner','Rifter','Expert','Traveller','Boxer'],
+  'DS Automobiles':['DS3','DS3 Crossback','DS4','DS5','DS7 Crossback','DS9'],
+  'Fiat':['500','500e','500L','500X','600','Panda','Punto','Tipo','Doblò','Freemont','Bravo','Croma','Sedici'],
+  'Fiat Professional':['Ducato','E-Ducato','Scudo','Doblò','Fiorino','Talento'],
+  'Jeep':['Avenger','Compass','Renegade','Cherokee','Grand Cherokee','Wrangler'],
+  'Abarth':['500','595','695','124 Spider'],
+  'Leapmotor':[],'Livan':[],'BAIC':[],'Saab':['9-3','9-5'],'Otro':[]
 };
-
-/* ── templates definition ── */
-var TEMPLATES={
-  airbag:{
-    id:'airbag',ico:'AIR',
-    name:'Airbag / Campaña',
-    desc:'Recall y campaña de airbags Stellantis',
-    listName:'Solicitudes Airbag',
-    fields:[
-      {id:'matricula',    label:'Matrícula',          type:'text',  required:true,  ph:'1234ABC', upper:true},
-      {id:'cliente',      label:'Cliente',             type:'text',  required:true,  ph:'Nombre completo'},
-      {id:'telefono',     label:'Teléfono',            type:'tel',   required:false, ph:'6XX XXX XXX'},
-      {id:'marca',        label:'Marca',               type:'select',required:false, opts:BRANDS, sub:'modelo'},
-      {id:'modelo',       label:'Modelo',              type:'select',required:false, opts:[]},
-      {id:'vin',          label:'VIN / Bastidor',      type:'text',  required:false, ph:'17 caracteres', upper:true, mono:true},
-      {id:'ot',           label:'OT',                  type:'text',  required:false, ph:'Nº de OT si la tiene', mono:true},
-      {id:'tipo_airbag',  label:'Tipo de airbag',      type:'select',required:false,
-        opts:['Frontal conductor','Frontal pasajero','Lateral izquierdo','Lateral derecho','Cortina izquierda','Cortina derecha','Trasero conductor','Trasero pasajero']},
-      {id:'fecha_cita',   label:'Fecha de cita',       type:'fecha_cita', required:true},
-      {id:'prioridad',    label:'Prioridad',           type:'priority'},
-      {id:'notas',        label:'Notas / Observaciones', type:'textarea', ph:'Observaciones adicionales...'},
-    ]
-  },
-  neumaticos:{
-    id:'neumaticos',ico:'NEU',
-    name:'Neumáticos',
-    desc:'Pedido de neumáticos y llantas',
-    listName:'Solicitudes Neumáticos',
-    fields:[
-      {id:'matricula',   label:'Matrícula',            type:'text',   required:true,  ph:'1234ABC', upper:true},
-      {id:'cliente',     label:'Cliente',              type:'text',   required:true,  ph:'Nombre completo'},
-      {id:'telefono',    label:'Teléfono',             type:'tel',    required:false, ph:'6XX XXX XXX'},
-      {id:'marca',       label:'Marca vehículo',       type:'select', required:false, opts:BRANDS, sub:'modelo'},
-      {id:'modelo',      label:'Modelo',               type:'select', required:false, opts:[]},
-      {id:'vin',         label:'VIN / Bastidor',       type:'text',   required:false, ph:'17 caracteres', upper:true, mono:true},
-      {id:'ot',          label:'OT',                   type:'text',   required:false, ph:'Nº de OT si la tiene', mono:true},
-      {id:'cantidad',    label:'Cantidad',             type:'select', required:true,
-        opts:['1 neumático','2 neumáticos','4 neumáticos']},
-      {id:'ancho',       label:'Ancho',                type:'select', required:true,
-        opts:['155','165','175','185','195','205','215','225','235','245','255','265','275']},
-      {id:'perfil',      label:'Perfil',               type:'select', required:true,
-        opts:['30','35','40','45','50','55','60','65','70','75','80']},
-      {id:'llanta',      label:'Llanta (pulgadas)',    type:'select', required:true,
-        opts:['13"','14"','15"','16"','17"','18"','19"','20"','21"','22"']},
-      {id:'ind_carga',   label:'Índice de carga',      type:'select', required:false,
-        opts:['60 (250kg)','65 (290kg)','70 (335kg)','75 (387kg)','80 (450kg)','82 (475kg)','84 (500kg)','85 (515kg)','86 (530kg)','87 (545kg)','88 (560kg)','89 (580kg)','90 (600kg)','91 (615kg)','92 (630kg)','93 (650kg)','94 (670kg)','95 (690kg)','96 (710kg)','97 (730kg)','98 (750kg)','99 (775kg)','100 (800kg)','101 (825kg)','102 (850kg)','103 (875kg)','104 (900kg)','105 (925kg)','106 (950kg)','107 (975kg)','108 (1000kg)']},
-      {id:'cod_vel',     label:'Código de velocidad',  type:'select', required:false,
-        opts:['N (140km/h)','P (150km/h)','Q (160km/h)','R (170km/h)','S (180km/h)','T (190km/h)','H (210km/h)','V (240km/h)','W (270km/h)','Y (300km/h)','ZR (+240km/h)']},
-      {id:'tipo',        label:'Temporada',            type:'select', required:true,
-        opts:['Verano','Invierno','All Season / 4 estaciones']},
-      {id:'marca_neum',  label:'Marca preferida',      type:'select', required:false,
-        opts:['Sin preferencia','Michelin','Continental','Bridgestone','Goodyear','Pirelli','Dunlop','Hankook','Yokohama','Falken','Firestone','BFGoodrich','Kumho']},
-      {id:'con_llanta',  label:'Incluye llanta',       type:'select', required:false,
-        opts:['No, solo cubierta','Sí, con llanta de acero','Sí, con llanta de aluminio']},
-      {id:'fecha_cita',  label:'Fecha de cita',        type:'fecha_cita', required:true},
-      {id:'prioridad',   label:'Prioridad',            type:'priority'},
-      {id:'notas',       label:'Notas / Observaciones',type:'textarea', required:false, ph:'Equilibrado, TPMS, observaciones...'},
-    ]
-  },
-  general:{
-    id:'general',ico:'PED',
-    name:'Pedido General',
-    desc:'Piezas, repuestos y material diverso',
-    listName:'Solicitudes Generales',
-    fields:[
-      {id:'matricula',   label:'Matrícula',            type:'text',   required:true,  ph:'1234ABC', upper:true},
-      {id:'cliente',     label:'Cliente',              type:'text',   required:true,  ph:'Nombre completo'},
-      {id:'telefono',    label:'Teléfono',             type:'tel',    required:false, ph:'6XX XXX XXX'},
-      {id:'marca',       label:'Marca',                type:'select', required:false, opts:BRANDS, sub:'modelo'},
-      {id:'modelo',      label:'Modelo',               type:'select', required:false, opts:[]},
-      {id:'vin',         label:'VIN / Bastidor',       type:'text',   required:false, ph:'17 caracteres', upper:true, mono:true},
-      {id:'ot',          label:'OT',                   type:'text',   required:false, ph:'Nº de OT si la tiene', mono:true},
-      {id:'referencia',  label:'Referencia',           type:'text',   required:false, ph:'Si la sabes (la usa Recambios al pedir)', upper:true, mono:true},
-      {id:'que_necesita',label:'¿Qué necesita?',       type:'textarea',required:true,  ph:'Describe qué pieza o trabajo necesita el cliente...'},
-      {id:'fecha_cita',  label:'Fecha de cita',        type:'fecha_cita', required:true},
-      {id:'prioridad',   label:'Prioridad',            type:'priority'},
-      {id:'notas',       label:'Notas / Observaciones',type:'textarea',required:false, ph:'Referencia si la conoce, observaciones adicionales...'},
-    ]
-  }
-};
-
-/* ── state ── */
-// ── Lista de personas del taller — editar con los nombres reales ────────
-// Etiquetas de Trello por marca — IDs reales del tablero
-// Normaliza matrícula para comparación — quita E inicial, espacios, guiones
-function normMatricula(m){
-  if(!m)return '';
-  return m.toUpperCase().trim()
-    .replace(/^E[-\s]?/,'')   // quita E o E- del principio
-    .replace(/[\s\-]/g,'');   // quita espacios y guiones
-}
 
 var BRAND_LABELS={
   'Peugeot':        '68a4531b010b18274c39d39e',
@@ -239,766 +169,790 @@ var BRAND_LABELS={
   'DS Automobiles': '6a169a3fedbf39f90ebaf908',
   'Abarth':         '6a169a538634e946cdc1e40b',
   'Jeep':           '6a169a5caa8c50e6aba364a2',
-  'Otro':           '6a169a67c1d226fa846f25ef',
+  'Otro':           '6a169a67c1d226fa846f25ef'
 };
 
-var STAFF=[
-  'JOAN ALVAREZ',
-  'MIRIAM ALVAREZ',
-  'JORDI F.',
-  'J. OLIVER',
-  'RAUL',
-  'CHARLY',
-  'OTRO',
-];
+var STAFF=['JOAN ALVAREZ','MIRIAM ALVAREZ','JORDI F.','J. OLIVER','RAUL','CHARLY','OTRO'];
 
-var state={
-  step:'who',     // who | pick | form | list-pick | done
-  userName:'',
-  userDetected:false,
-  tpl:null,
-  values:{},
-  priority:'normal',
-  marca:'Peugeot',
-  lists:[],
-  selectedList:null,
-  apiKey:'',
-  apiToken:'',
-  msg:null,
-  saving:false
+/* ── iconos (SVG de línea; nada de emojis) ── */
+function ico(n,c,s){
+  c=c||'currentColor'; s=s||20;
+  var p={
+    neumatico:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4"/><path d="M12 3v5.6M12 15.4V21M3 12h5.6M15.4 12H21"/>',
+    airbag:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 9V3.2M9.4 14.4l-3.9 4.3M14.6 14.4l3.9 4.3"/>',
+    caja:'<path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>',
+    papel:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/>',
+    atras:'<path d="M15 18l-6-6 6-6"/>',
+    mas:'<path d="M9 18l6-6-6-6"/>',
+    check:'<path d="M20 6L9 17l-5-5"/>',
+    reloj:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    aviso:'<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.8L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0z"/>',
+    info:'<circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/>',
+    fuera:'<path d="M7 17L17 7"/><path d="M9 7h8v8"/>',
+    nuevo:'<path d="M12 5v14M5 12h14"/>',
+    coche:'<path d="M3 11l1.8-5.1A2 2 0 0 1 6.7 4.5h10.6a2 2 0 0 1 1.9 1.4L21 11"/><path d="M3 11h18v5.5a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1V16H6.5v.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V11z"/><circle cx="7" cy="13.5" r="1"/><circle cx="17" cy="13.5" r="1"/>'
+  }[n]||'';
+  return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="'+c+
+    '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';
+}
+
+/* ── plantillas ──────────────────────────────────────────────────────────
+   Cada campo: id, label, type, span (de 6), required, si (condición), ph, upper, mono, opts, help
+   NINGÚN desplegable se rellena solo: si no lo eligen, va vacío.                       */
+var PRIO_PEDIDO={normal:'Normal',urgente:'Urgente','muy-urgente':'Muy urgente'};
+var PRIO_PRESU ={normal:'Normal',urgente:'El cliente espera','muy-urgente':'Urgente'};
+
+var TEMPLATES={
+  neumaticos:{
+    id:'neumaticos',icon:'neumatico',name:'Neumáticos',desc:'Medida, cantidad y referencia',
+    hint:'Medida, cantidad y referencia del presupuesto',
+    lista:'PEDIDOS',prio:PRIO_PEDIDO,
+    secciones:[
+      {t:'Vehículo',campos:[
+        {id:'matricula',label:'Matrícula',type:'text',span:3,required:true,ph:'1234BCD',upper:true,mono:true},
+        {id:'ot',label:'OT',opt:'· si la tiene',type:'text',span:3,mono:true,ph:'—'},
+        {id:'marca',label:'Marca',type:'select',span:3,opts:BRANDS},
+        {id:'modelo',label:'Modelo',type:'modelo',span:3}
+      ]},
+      {t:'Neumático',campos:[
+        {id:'referencia',label:'Referencia',opt:'· si la sabes',type:'text',span:6,upper:true,mono:true,ph:'—'},
+        {id:'medida',label:'Medida',type:'medida',span:6,required:true},
+        {id:'cantidad',label:'Cantidad',type:'select',span:2,required:true,
+         opts:['1 unidad','2 unidades','3 unidades','4 unidades','5 o más']},
+        {id:'tipo',label:'Temporada',type:'select',span:2,required:true,
+         opts:['Verano','Invierno','All Season / 4 estaciones']},
+        {id:'marca_neum',label:'Marca',opt:'· opcional',type:'select',span:2,
+         opts:['Michelin','Continental','Bridgestone','Goodyear','Pirelli','Dunlop','Hankook','Yokohama',
+               'Falken','Firestone','BFGoodrich','Kumho','Sin preferencia']}
+      ]},
+      {t:'Cita y prioridad',campos:[
+        {id:'fecha_cita',label:'Fecha de cita',type:'cita',span:6,required:true},
+        {id:'prioridad',label:'Prioridad',type:'prioridad',span:6},
+        {id:'notas',label:'Notas',opt:'· opcional',type:'text',span:6,ph:'Equilibrado, válvulas TPMS…'}
+      ]}
+    ]
+  },
+  airbag:{
+    id:'airbag',icon:'airbag',name:'Airbag / Campaña',desc:'Llamada a revisión y campañas',
+    hint:'Llamada a revisión y campañas Stellantis',
+    lista:'PEDIDOS',prio:PRIO_PEDIDO,
+    secciones:[
+      {t:'Vehículo',campos:[
+        {id:'matricula',label:'Matrícula',type:'text',span:3,required:true,ph:'1234BCD',upper:true,mono:true},
+        {id:'ot',label:'OT',opt:'· si la tiene',type:'text',span:3,mono:true,ph:'—'},
+        {id:'marca',label:'Marca',type:'select',span:3,opts:BRANDS},
+        {id:'modelo',label:'Modelo',type:'modelo',span:3},
+        {id:'vin',label:'Bastidor (VIN)',type:'vin',span:6,
+         help:'Es lo que necesita Recambios para pedir el airbag correcto. Si no lo tienes, lo buscamos nosotros.'}
+      ]},
+      {t:'Campaña',campos:[
+        {id:'tipo_airbag',label:'Tipo de airbag',type:'select',span:3,
+         opts:['Frontal conductor','Frontal pasajero','Lateral izquierdo','Lateral derecho',
+               'Cortina izquierda','Cortina derecha','Trasero conductor','Trasero pasajero','No lo sé']},
+        {id:'cod_campana',label:'Código de campaña',opt:'· si lo tienes',type:'text',span:3,upper:true,mono:true,ph:'—'}
+      ]},
+      {t:'Cita y prioridad',campos:[
+        {id:'fecha_cita',label:'Fecha de cita',type:'cita',span:6,required:true},
+        {id:'prioridad',label:'Prioridad',type:'prioridad',span:6},
+        {id:'notas',label:'Notas',opt:'· opcional',type:'text',span:6,ph:'Observaciones…'}
+      ]}
+    ]
+  },
+  general:{
+    id:'general',icon:'caja',name:'Pieza o material',desc:'Recambio, consumible y material',
+    hint:'Recambio, consumible y material de taller',
+    lista:'PEDIDOS',prio:PRIO_PEDIDO,
+    secciones:[
+      {campos:[
+        {id:'para',label:'',type:'seg',span:6,opts:['Para un coche','Material de taller'],def:'Para un coche'}
+      ]},
+      {t:'Vehículo',si:'para=Para un coche',campos:[
+        {id:'matricula',label:'Matrícula',type:'text',span:3,required:true,ph:'1234BCD',upper:true,mono:true},
+        {id:'ot',label:'OT',opt:'· si la tiene',type:'text',span:3,mono:true,ph:'—'},
+        {id:'marca',label:'Marca',type:'select',span:3,opts:BRANDS},
+        {id:'modelo',label:'Modelo',type:'modelo',span:3}
+      ]},
+      {t:'Qué necesita',campos:[
+        {id:'referencia',label:'Referencia',opt:'· si la sabes',type:'text',span:4,upper:true,mono:true,ph:'—'},
+        {id:'cantidad_txt',label:'Cantidad',type:'text',span:2,ph:'1'},
+        {id:'que_necesita',label:'Descripción',type:'textarea',span:6,required:true,
+         ph:'Qué pieza o material necesita…'}
+      ]},
+      {t:'Cita y prioridad',campos:[
+        {id:'fecha_cita',label:'Fecha de cita',type:'cita',span:6,required:true,
+         reqNo:'para=Material de taller'},
+        {id:'prioridad',label:'Prioridad',type:'prioridad',span:6},
+        {id:'notas',label:'Notas',opt:'· opcional',type:'text',span:6,ph:'Observaciones…'}
+      ]}
+    ]
+  },
+  presupuesto:{
+    id:'presupuesto',icon:'papel',name:'Pedir presupuesto',desc:'El cliente quiere precio',
+    hint:'El cliente quiere precio antes de decidir',
+    lista:'PRESUPUESTOS',prio:PRIO_PRESU,sinCita:true,
+    secciones:[
+      {campos:[
+        {id:'tipo_presu',label:'',type:'seg',span:6,opts:['Piezas','Neumáticos'],def:'Piezas'}
+      ]},
+      {t:'Cliente',campos:[
+        {id:'cliente',label:'Nombre',type:'text',span:4,required:true,ph:'Nombre del cliente'},
+        {id:'telefono',label:'Teléfono',type:'text',span:2,mono:true,ph:'6XX XXX XXX'}
+      ]},
+      {t:'Vehículo',campos:[
+        {id:'matricula',label:'Matrícula',type:'text',span:2,required:true,ph:'1234BCD',upper:true,mono:true},
+        {id:'marca',label:'Marca',type:'select',span:2,opts:BRANDS},
+        {id:'modelo',label:'Modelo',type:'modelo',span:2},
+        {id:'vin',label:'Bastidor (VIN)',type:'vin',span:6,si:'tipo_presu=Piezas',
+         help:'Con el bastidor acertamos la pieza a la primera. Si no lo tienes, lo buscamos nosotros.'}
+      ]},
+      {t:'Qué hay que presupuestar',si:'tipo_presu=Piezas',campos:[
+        {id:'que_necesita',label:'Descripción',type:'textarea',span:6,required:true,
+         ph:'Qué pieza necesita y por qué…'},
+        {id:'referencia',label:'Referencia',opt:'· opcional, si la sabes',type:'text',span:6,upper:true,mono:true,ph:'—'}
+      ]},
+      {t:'Qué neumático',si:'tipo_presu=Neumáticos',campos:[
+        {id:'medida',label:'Medida',type:'medida',span:6,required:true},
+        {id:'cantidad',label:'Cantidad',type:'select',span:3,required:true,
+         opts:['1 unidad','2 unidades','3 unidades','4 unidades','5 o más']},
+        {id:'tipo',label:'Temporada',type:'select',span:3,required:true,
+         opts:['Verano','Invierno','All Season / 4 estaciones']},
+        {id:'gama',label:'Qué busca el cliente',type:'select',span:6,
+         opts:['Dame 2 o 3 opciones de precio','Lo más económico','Calidad-precio','Primera marca',
+               'La misma marca que lleva'],
+         help:'Así sabemos si buscar lo más barato, calidad-precio o primera marca.'}
+      ]},
+      {t:'¿Corre prisa?',campos:[
+        {id:'prioridad',label:'',type:'prioridad',span:6},
+        {id:'notas',label:'Notas',opt:'· opcional',type:'text',span:6,ph:'Lo que te haya dicho el cliente…'}
+      ]}
+    ]
+  }
 };
+var ORDEN=['neumaticos','airbag','general','presupuesto'];
 
-/* ── render ── */
+/* ── utilidades ── */
 function $(id){return document.getElementById(id);}
 function app(){return document.getElementById('app');}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
+function normMatricula(m){
+  if(!m)return '';
+  return String(m).toUpperCase().trim().replace(/^E[-\s]?/,'').replace(/[\s\-]/g,'');
+}
+/* Acepta la matrícula española actual y antigua, la E delante, y formatos de fuera.
+   Solo rechaza lo que claramente está a medias. */
+function validarMatricula(m){
+  var n=normMatricula(m);
+  if(n.length<5||n.length>10)return false;
+  if(!/^[A-Z0-9]+$/.test(n))return false;
+  if(/^[0-9]+$/.test(n))return false;          // solo números: le falta algo
+  return true;
+}
+function esMatriculaEspanola(m){
+  var n=normMatricula(m);
+  return /^[0-9]{4}[BCDFGHJKLMNPRSTVWXYZ]{3}$/.test(n)||/^[A-Z]{1,2}[0-9]{4}[A-Z]{1,3}$/.test(n);
+}
+/* La cita a las 9:00 de AQUÍ, no de Londres (antes salía a las 11:00 en Trello). */
+function citaISO(f){
+  try{ return new Date(f+'T09:00:00').toISOString(); }catch(e){ return null; }
+}
+function fFecha(iso){
+  var m=String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m?(m[3]+'/'+m[2]+'/'+m[1]):(iso||'');
+}
+function medidaTexto(v){
+  if(!v.ancho||!v.perfil||!v.llanta)return '';
+  var s=v.ancho+'/'+v.perfil+' R'+v.llanta;
+  if(v.carga||v.velocidad)s+=' '+(v.carga||'')+(v.velocidad||'');
+  return s;
+}
+function recientes(){
+  try{ return JSON.parse(localStorage.getItem('recambios_medidas')||'[]'); }catch(e){ return []; }
+}
+function guardarReciente(m){
+  if(!m)return;
+  try{
+    var l=recientes().filter(function(x){return x!==m;});
+    l.unshift(m);
+    localStorage.setItem('recambios_medidas',JSON.stringify(l.slice(0,3)));
+  }catch(e){}
+}
+
+var state={step:'who',userName:'',tpl:null,values:{},priority:'normal',lists:[],selectedList:null,
+           listName:'',msg:null,saving:false,duplicates:[],skipDupCheck:false,listNames:{},tocado:false};
+
+/* ── render raíz ── */
 function render(){
   if(MODE==='settings')   return renderSettings();
   if(MODE==='card-detail')return renderCardDetail();
-  renderNewRequest();
+  if(state.step==='who')      return renderWho();
+  if(state.step==='pick')     return renderPick();
+  if(state.step==='form')     return renderForm();
+  if(state.step==='dup-check')return renderDupCheck();
+  if(state.step==='list-pick')return renderListPick();
+  if(state.step==='hecho')    return renderHecho();
 }
+function pinta(html){ app().innerHTML=html; t.sizeTo('#app'); }
 
-/* ══════════════════════════════════════════════════════════════
-   MODO: NUEVA SOLICITUD
-══════════════════════════════════════════════════════════════ */
-function renderNewRequest(){
-  if(state.step==='who')           return renderWho();
-  if(state.step==='pick')          return renderPick();
-  if(state.step==='dup-check')     return renderDupCheck();
-  if(state.step==='form')      return renderForm();
-  if(state.step==='list-pick') return renderListPick();
-}
-
+/* ══════════ ¿QUIÉN ERES? ══════════ */
 function renderWho(){
-  // Mostrar pantalla de carga mientras detectamos el usuario
-  app().innerHTML='<div class="scroll" style="text-align:center;padding:40px 20px">'
-    +'<div style="font-size:11px;font-weight:800;letter-spacing:0.1em;color:#64748b;margin-bottom:14px;text-transform:uppercase">Usuario</div>'
-    +'<div style="font-size:14px;color:#64748b">Detectando usuario de Trello...</div>'
-    +'</div>';
-  t.sizeTo('#app');
-
-  // Intentar obtener usuario via SDK de Trello
-  t.member('all')
-  .then(function(member){
-    if(member && member.fullName){
-      state.userName=member.fullName.toUpperCase();
-      state.userDetected=true;
-      state.step='pick';
-      render();
-    } else {
-      // fullName vacío → mostrar selector manual
-      renderWhoManual();
-    }
-  })
-  .catch(function(){
-    // t.member falló → mostrar selector manual
-    renderWhoManual();
-  });
+  pinta('<div class="wrap"><div style="padding:48px 24px;text-align:center">'
+    +'<div class="mini" style="letter-spacing:.1em;text-transform:uppercase;font-weight:600;margin-bottom:12px">Usuario</div>'
+    +'<div class="sub">Identificando…</div></div></div>');
+  t.member('all').then(function(m){
+    if(m&&m.fullName){ state.userName=m.fullName.toUpperCase(); state.step='pick'; render(); }
+    else renderWhoManual();
+  }).catch(renderWhoManual);
 }
-
-function getInitials(name){
-  var parts=name.trim().split(' ');
-  if(parts.length>=2) return (parts[0][0]+parts[parts.length-1][0]).toUpperCase();
-  return name.substring(0,2).toUpperCase();
-}
-function getAvatarColor(name){
-  var colors=['#1d4ed8','#7c3aed','#059669','#d97706','#dc2626','#0369a1','#065f46','#92400e'];
-  var idx=0;
-  for(var i=0;i<name.length;i++) idx+=name.charCodeAt(i);
-  return colors[idx%colors.length];
-}
-
 function renderWhoManual(){
-  var html='<div class="scroll">';
-  html+='<div style="text-align:center;padding:10px 0 18px">';
-  html+='<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:18px;color:#0c1a35;margin-bottom:4px">¿Quién eres?</div>';
-  html+='<div style="font-size:12px;color:#64748b">Selecciona tu nombre para registrar la solicitud</div>';
-  html+='</div>';
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px">';
-  STAFF.forEach(function(name){
-    var sel=state.userName===name;
-    var col=getAvatarColor(name);
-    var initials=getInitials(name);
-    html+='<button onclick="selectWho(\''+name+'\')" style="'
-      +'background:'+(sel?col:'white')+';'
-      +'border:2px solid '+(sel?col:'#e2e8f0')+';'
-      +'border-radius:12px;padding:12px 10px;font-family:inherit;'
-      +'cursor:pointer;display:flex;align-items:center;gap:10px;'
-      +'transition:all 0.15s;text-align:left" '
-      +'onmouseover="if(!'+sel+')this.style.borderColor=\''+col+'\'" '
-      +'onmouseout="if(!'+sel+')this.style.borderColor=\'#e2e8f0\'">';
-    html+='<div style="width:36px;height:36px;border-radius:50%;flex-shrink:0;'
-      +'background:'+(sel?'rgba(255,255,255,0.25)':col)+';'
-      +'display:flex;align-items:center;justify-content:center;'
-      +'font-size:13px;font-weight:800;color:white;letter-spacing:0.02em">'+initials+'</div>';
-    html+='<div style="font-size:12px;font-weight:700;color:'+(sel?'white':'#0f172a')+';line-height:1.2">'+name+'</div>';
-    html+='</button>';
+  var h='<div class="wrap"><div class="body" style="padding-top:22px">';
+  h+='<h1>¿Quién eres?</h1><div class="sub" style="margin-bottom:18px">Para saber quién pide el material.</div>';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+  STAFF.forEach(function(n){
+    h+='<button class="opcion" style="padding:14px" onclick="elegirQuien(\''+esc(n)+'\')">'
+      +'<div class="badge n" style="width:32px;height:32px;border-radius:99px;font-size:11px;font-weight:700;color:var(--ac)">'
+      +esc(iniciales(n))+'</div><div class="t" style="font-size:13.5px">'+esc(n)+'</div></button>';
   });
-  html+='</div>';
-  if(state.msg){html+='<div class="alert alert-'+(state.msg.type||'warn')+'">'+state.msg.text+'</div>';}
-  html+='<div style="display:flex;justify-content:flex-end;gap:8px">';
-  html+='<button class="btn btn-ghost" onclick="t.closeModal()">Cancelar</button>';
-  html+='<button class="btn btn-primary" onclick="confirmWho()">Continuar →</button>';
-  html+='</div></div>';
-  app().innerHTML=html;
-  t.sizeTo('#app');
+  h+='</div></div><div class="foot"><div class="hint"></div>'
+    +'<button class="btn btn-g" onclick="t.closeModal()">Cancelar</button></div></div>';
+  pinta(h);
 }
-
-function selectWho(name){
-  state.userName=name;
-  state.msg=null;
-  renderWhoManual();
+function iniciales(n){
+  var p=String(n).trim().split(/\s+/);
+  return (p.length>1?p[0][0]+p[p.length-1][0]:String(n).substring(0,2)).toUpperCase();
 }
+function elegirQuien(n){ state.userName=n; state.step='pick'; render(); }
 
-function confirmWho(){
-  if(!state.userName){
-    state.msg={type:'warn',text:'⚠️ Selecciona tu nombre para continuar'};
-    return renderWhoManual();
-  }
-  state.step='pick';
-  render();
+/* ══════════ ELEGIR TIPO ══════════ */
+function pasos(n){
+  var p=[['Tipo',1],['Datos',2],['Hecho',3]],h='<div class="pasos">';
+  p.forEach(function(x,i){
+    if(i)h+='<div class="linea"></div>';
+    var cl=n===x[1]?'paso on':(n>x[1]?'paso dn':'paso');
+    h+='<div class="'+cl+'"><span>'+(n>x[1]?ico('check','var(--ac)',12):x[1])+'</span><b>'+x[0]+'</b></div>';
+  });
+  return h+'</div>';
 }
-
 function renderPick(){
-  var TPL_META={
-    airbag:    {color:'#1d4ed8',bg:'#dbeafe',border:'#3b82f6',icon:'AIR',hint:'Airbag · Recall'},
-    neumaticos:{color:'#059669',bg:'#d1fae5',border:'#10b981',icon:'NEU',hint:'Neumáticos'},
-    general:   {color:'#7c3aed',bg:'#ede9fe',border:'#8b5cf6',icon:'PED',hint:'Pedido General'},
-  };
-  var html='<div class="scroll">';
-  html+='<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:18px;color:#0c1a35;margin-bottom:4px">Nueva Solicitud</div>';
-  html+='<div style="font-size:12px;color:#64748b;margin-bottom:20px">Selecciona el tipo de pedido</div>';
-  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">';
-  Object.values(TEMPLATES).forEach(function(tpl){
-    var m=TPL_META[tpl.id]||{color:'#475569',bg:'#f1f5f9',border:'#94a3b8',icon:'?',hint:''};
-    html+='<div onclick="pickTemplate(\''+tpl.id+'\')" style="'
-      +'background:white;border:2px solid '+m.border+';border-radius:14px;'
-      +'padding:18px 10px 14px;cursor:pointer;text-align:center;'
-      +'transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:10px" '
-      +'onmouseover="this.style.background=\''+m.bg+'\';this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 4px 12px rgba(0,0,0,0.1)\'" '
-      +'onmouseout="this.style.background=\'white\';this.style.transform=\'none\';this.style.boxShadow=\'none\'">';
-    // Icono cuadrado con color de marca
-    html+='<div style="width:52px;height:52px;border-radius:12px;background:'+m.bg+';'
-      +'display:flex;align-items:center;justify-content:center;'
-      +'border:2px solid '+m.border+'">'
-      +'<span style="font-size:12px;font-weight:800;color:'+m.color+';letter-spacing:0.08em">'+m.icon+'</span>'
-      +'</div>';
-    // Nombre
-    html+='<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:13px;color:#0c1a35;line-height:1.2">'+tpl.name+'</div>';
-    // Descripción
-    html+='<div style="font-size:10px;color:'+m.color+';font-weight:600;letter-spacing:0.03em">'+m.hint+'</div>';
-    html+='</div>';
+  var h='<div class="wrap">';
+  h+='<div style="padding:18px 24px 0;display:flex;align-items:center;justify-content:space-between;gap:12px">';
+  h+='<div style="display:flex;align-items:center;gap:10px">'
+    +'<div class="badge" style="width:26px;height:26px;border-radius:6px;background:var(--ac)">'+ico('coche','#fff',15)+'</div>'
+    +'<div class="mini" style="font-weight:600;letter-spacing:.1em;text-transform:uppercase">Recambios · Nueva solicitud</div></div>';
+  if(state.userName)
+    h+='<div class="chip"><span class="mono" style="font-size:10px">'+esc(iniciales(state.userName))+'</span>'
+      +esc(capitaliza(state.userName))+'</div>';
+  h+='</div>'+pasos(1);
+  h+='<div class="body" style="padding-top:22px"><h1>¿Qué necesitas pedir?</h1>'
+    +'<div class="sub">Elige el tipo y te pedimos solo lo que hace falta.</div>'
+    +'<div style="display:flex;flex-direction:column;gap:10px;margin-top:18px">';
+  ORDEN.forEach(function(id){
+    var tp=TEMPLATES[id];
+    h+='<button class="opcion" onclick="pickTemplate(\''+id+'\')">'
+      +'<div class="badge'+(id==='neumaticos'||id==='presupuesto'?'':' n')+'" style="width:44px;height:44px">'
+      +ico(tp.icon,(id==='neumaticos'||id==='presupuesto')?'var(--ac)':'#3C4653',22)+'</div>'
+      +'<div style="flex:1"><div class="t">'+esc(tp.name)+'</div><div class="d">'+esc(tp.hint)+'</div></div>'
+      +ico('mas','var(--soft)',18)+'</button>';
   });
-  html+='</div>';
-  html+='<div style="display:flex;justify-content:flex-end">';
-  html+='<button class="btn btn-ghost btn-sm" onclick="t.closeModal()">Cancelar</button>';
-  html+='</div></div>';
-  app().innerHTML=html;
-  t.sizeTo('#app');
+  h+='</div></div>';
+  h+='<div class="foot"><div class="hint">Lo que pidas llega a Recambios al momento</div>'
+    +'<button class="btn btn-g" onclick="t.closeModal()">Cancelar</button></div></div>';
+  pinta(h);
+}
+function capitaliza(s){
+  return String(s).toLowerCase().replace(/(^|\s)([a-záéíóúñ])/g,function(m,a,b){return a+b.toUpperCase();});
 }
 
 function pickTemplate(id){
   state.tpl=TEMPLATES[id];
   state.priority='normal';
-  state.marca=BRANDS[0];
-  state.sin_cita=false;
-  state.skipDupCheck=false;
-  state.duplicates=[];
-  // Pre-inicializar selects con su valor por defecto para que salgan en el título
-  var defaults={};
-  TEMPLATES[id].fields.forEach(function(f){
-    if(f.type==='select'){
-      var opts=f.id==='modelo'?(MODELOS[BRANDS[0]]||['Otro']):f.opts;
-      if(opts&&opts.length) defaults[f.id]=opts[0];
-    }
+  state.values={};
+  state.msg=null; state.tocado=false; state.skipDupCheck=false; state.duplicates=[];
+  // valores por defecto SOLO de los conmutadores (los desplegables van vacíos a propósito)
+  state.tpl.secciones.forEach(function(s){
+    s.campos.forEach(function(f){ if(f.type==='seg'&&f.def) state.values[f.id]=f.def; });
   });
-  state.values=defaults;
+  state.listName=state.tpl.lista;
+  state.selectedList=null;
+  cargarListas();
   state.step='form';
   render();
 }
 
-function renderForm(){
-  var tpl=state.tpl;
-  var html='<div class="scroll">';
-  html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">';
-  html+='<div style="font-size:11px;font-weight:800;letter-spacing:0.08em;color:white;background:#0c1a35;border-radius:5px;padding:4px 8px">'+tpl.ico+'</div>';
-  html+='<div><div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:16px">'+tpl.name+'</div>';
-  html+='<div style="font-size:11px;color:#64748b">'+tpl.desc+'</div></div>';
-  html+='<button class="btn btn-ghost btn-sm" onclick="state.step=\'pick\';render()" style="margin-left:auto">← Cambiar</button>';
-  html+='</div>';
-  html+='<div class="form-wrap"><div class="row">';
+function cargarListas(){
+  fetch('https://api.trello.com/1/boards/'+BOARD_ID+'/lists?key='+API_KEY+'&token='+API_TOKEN+'&filter=open&fields=id,name')
+  .then(function(r){return r.json();})
+  .then(function(ls){
+    state.lists=ls||[];
+    state.listNames={};
+    state.lists.forEach(function(l){ state.listNames[l.id]=l.name; });
+    var busca=(state.tpl&&state.tpl.lista||'').toUpperCase();
+    var m=state.lists.filter(function(l){ return String(l.name).toUpperCase().indexOf(busca)!==-1; })[0];
+    if(!m) m=state.lists.filter(function(l){ return l.id===LISTA_POR_DEFECTO; })[0];
+    if(!m) m=state.lists[0];
+    if(m){ state.selectedList=m.id; state.listName=m.name; }
+    if(state.step==='form')render();
+  }).catch(function(){});
+}
 
-  var fullRow=false;
-  tpl.fields.forEach(function(f,i){
-    var isFull=f.type==='textarea'||f.type==='priority'||f.id==='descripcion'||f.id==='vin'||f.id==='referencia';
-    if(isFull&&!fullRow){html+='</div><div class="row">';fullRow=false;}
-        html+='<div class="field'+(isFull?' full':'')+'"><label>'+f.label+(f.required?' <span style="color:#dc2626">*</span>':'')+'</label>';
+/* ══════════ FORMULARIO ══════════ */
+function visible(f){
+  if(!f.si)return true;
+  var p=f.si.split('='); return (state.values[p[0]]||'')===p[1];
+}
+function campoHTML(f){
+  var v=state.values[f.id];
+  var id='f_'+f.id;
+  var set="state.values['"+f.id+"']=this.value;borraMsg()";
+  var up=f.upper?"this.value=this.value.toUpperCase();":"";
+  var falta=state.tocado&&esRequerido(f)&&esVacio(f);
+  var h='<div class="f" style="grid-column:span '+(f.span||6)+'">';
+  if(f.label)h+='<label for="'+id+'">'+esc(f.label)+(f.opt?' <span class="opt">'+esc(f.opt)+'</span>':'')
+    +(esRequerido(f)?' <span style="color:var(--dg)">*</span>':'')+'</label>';
 
-    if(f.type==='text'||f.type==='tel'||f.type==='number'){
-      var maxLen=f.id==='matricula'?'maxlength="10" ':'';
-      var onInput=f.upper
-        ?'oninput="this.value=this.value.toUpperCase();state.values[\''+f.id+'\']=this.value"'
-        :'oninput="state.values[\''+f.id+'\']=this.value"';
-      html+='<input id="f_'+f.id+'" type="'+(f.type==='number'?'number':'text')+'" '+maxLen+'placeholder="'+(f.ph||'')+'"'
-        +(f.upper?' style="text-transform:uppercase;font-family:\'Courier New\',monospace;letter-spacing:0.05em"':'')
-        +(f.mono&&!f.upper?' style="font-family:\'Courier New\',monospace;letter-spacing:0.06em"':'')
-        +' value="'+(state.values[f.id]||'')+'" '+onInput+'>';
-    } else if(f.type==='textarea'){
-      html+='<textarea id="f_'+f.id+'" rows="3" placeholder="'+(f.ph||'')+'" style="resize:vertical" oninput="state.values[\''+f.id+'\']=this.value">'+(state.values[f.id]||'')+'</textarea>';
-    } else if(f.type==='select'){
-      var opts=f.id==='modelo'?(MODELOS[state.marca]||['Otro']):f.opts;
-      html+='<select id="f_'+f.id+'" onchange="selectChanged(\''+f.id+'\',\''+f.sub+'\',this.value)">';
-      if(!f.required)html+='<option value="">— Seleccionar —</option>';
-      opts.forEach(function(o){html+='<option value="'+o+'"'+(state.values[f.id]===o||(!state.values[f.id]&&o===opts[0])?' selected':'')+'>'+o+'</option>';});
-      html+='</select>';
-    } else if(f.type==='fecha_cita'){
-      var fcVal=state.values['fecha_cita']||'';
-      var sinCita=state.values['sin_cita']||false;
-      html+='<div style="display:flex;flex-direction:column;gap:8px">';
-      // Sin cita checkbox
-      html+='<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:#475569;text-transform:none;letter-spacing:0">';
-      html+='<input type="checkbox" id="chk_sin_cita"'+(sinCita?' checked':'')+' onchange="toggleSinCita(this.checked)" style="width:16px;height:16px;cursor:pointer;border-radius:4px;accent-color:#1d4ed8">';
-      html+='Vehículo sin cita asignada</label>';
-      // Date picker (hidden if sin cita)
-      html+='<input type="date" id="f_fecha_cita" value="'+fcVal+'"'+(sinCita?' style="display:none"':'')+' min="'+new Date().toISOString().split("T")[0]+'" oninput="state.values[\'fecha_cita\']=this.value" style="font-size:13px">';
-      if(!sinCita&&!fcVal){
-        html+='<div style="font-size:11px;color:#dc2626;font-weight:600">⚠️ Obligatorio: selecciona una fecha o marca "Sin cita"</div>';
-      }
-      if(sinCita){
-        html+='<div style="font-size:12px;background:#fef3c7;border:1.5px solid #fbbf24;border-radius:6px;padding:6px 10px;color:#92400e;font-weight:600">Se creará en la lista SIN CITA del responsable asignado</div>';
-      }
-      html+='</div>';
-    } else if(f.type==='priority'){
-      var p=state.priority;
-      html+='<div class="prio-wrap">';
-      html+='<button class="prio-btn'+(p==='normal'?' sel-normal':'')+'" onclick="setPriority(\'normal\')">Normal</button>';
-      html+='<button class="prio-btn'+(p==='urgente'?' sel-urgente':'')+'" onclick="setPriority(\'urgente\')">Urgente</button>';
-      html+='<button class="prio-btn'+(p==='muy-urgente'?' sel-muy-urgente':'')+'" onclick="setPriority(\'muy-urgente\')">Muy urgente</button>';
-      html+='</div>';
+  if(f.type==='text'||f.type==='vin'){
+    h+='<input id="'+id+'" type="text"'+(f.upper||f.mono?' class="mono"':'')+(falta?' class="bad"':'')
+      +' placeholder="'+esc(f.ph||'')+'" value="'+esc(v||'')+'" oninput="'+up+set+(f.type==='vin'?';pintaVin()':'')+'">';
+    if(f.type==='vin'){
+      h+='<div id="vinmsg">'+vinMsg(v)+'</div>';
+    } else if(f.help){ h+='<div class="help">'+esc(f.help)+'</div>'; }
+    if(f.id==='matricula'&&state.tocado&&v&&!validarMatricula(v))
+      h+='<div class="err">Esa matrícula parece incompleta.</div>';
+  }
+  else if(f.type==='textarea'){
+    h+='<textarea id="'+id+'" rows="3"'+(falta?' class="bad"':'')+' placeholder="'+esc(f.ph||'')
+      +'" oninput="'+set+'">'+esc(v||'')+'</textarea>';
+  }
+  else if(f.type==='select'){
+    h+='<select id="'+id+'"'+(falta?' class="bad"':'')+' onchange="'+set+';refresca()">';
+    h+='<option value="">— Elegir —</option>';
+    (f.opts||[]).forEach(function(o){
+      h+='<option value="'+esc(o)+'"'+(v===o?' selected':'')+'>'+esc(o)+'</option>';
+    });
+    h+='</select>';
+    if(f.help)h+='<div class="help">'+esc(f.help)+'</div>';
+  }
+  else if(f.type==='modelo'){
+    var sug=MODELOS[state.values['marca']]||[];
+    h+='<input id="'+id+'" type="text" list="lmod" placeholder="'+(state.values['marca']?'Escribe o elige':'Elige antes la marca')
+      +'" value="'+esc(v||'')+'" oninput="'+set+'">';
+    h+='<datalist id="lmod">';
+    sug.forEach(function(o){ h+='<option value="'+esc(o)+'"></option>'; });
+    h+='</datalist>';
+  }
+  else if(f.type==='seg'){
+    h+='<div class="seg">';
+    (f.opts||[]).forEach(function(o){
+      h+='<button type="button" class="'+(v===o?'on':'')+'" onclick="ponSeg(\''+f.id+'\',\''+esc(o)+'\')">'+esc(o)+'</button>';
+    });
+    h+='</div>';
+  }
+  else if(f.type==='prioridad'){
+    var pm=state.tpl.prio||PRIO_PEDIDO;
+    h+='<div class="seg">';
+    ['normal','urgente','muy-urgente'].forEach(function(k){
+      var cl=state.priority===k?(k==='normal'?'on':(k==='urgente'?'wn':'dg')):'';
+      h+='<button type="button" class="'+cl+'" onclick="setPriority(\''+k+'\')">'+esc(pm[k])+'</button>';
+    });
+    h+='</div>';
+  }
+  else if(f.type==='medida'){
+    h+='<div class="medida">'
+      +mInput('ancho','205',86)+'<span class="sep">/</span>'+mInput('perfil','55',76)
+      +'<span class="mono" style="color:var(--ink2);font-size:14px">R</span>'+mInput('llanta','16',76)
+      +'<div style="flex:1;display:flex;gap:7px;justify-content:flex-end;min-width:150px">'
+      +mInput('carga','91',62)+mSelect('velocidad',['N','P','Q','R','S','T','H','V','W','Y','ZR'],78)
+      +'</div></div>'
+      +'<div style="display:flex;gap:14px;margin-top:7px;padding:0 2px">'
+      +'<div style="font-size:10.5px;color:var(--soft)">ancho · perfil · llanta</div>'
+      +'<div style="margin-left:auto;font-size:10.5px;color:var(--soft)">carga · velocidad</div></div>';
+    var r=recientes();
+    if(r.length){
+      h+='<div class="recientes"><div style="font-size:11.5px;font-weight:600;color:var(--mut)">Últimas:</div>';
+      r.forEach(function(m){ h+='<button type="button" class="mono" onclick="ponMedida(\''+esc(m)+'\')">'+esc(m)+'</button>'; });
+      h+='</div>';
     }
-    html+='</div>';
+    if(state.tocado&&esVacio(f))h+='<div class="err">Pon al menos ancho, perfil y llanta.</div>';
+  }
+  else if(f.type==='cita'){
+    var sin=!!state.values['sin_cita'];
+    var hoy=new Date().toISOString().split('T')[0];
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end">';
+    h+='<div><input id="'+id+'" type="date" value="'+esc(state.values['fecha_cita']||'')+'" min="'+hoy+'"'
+      +(sin?' disabled style="opacity:.45"':'')+' oninput="state.values[\'fecha_cita\']=this.value;refresca()"></div>';
+    h+='<div><label style="display:flex;align-items:center;gap:9px;padding:12px;border:1px solid '
+      +(sin?'var(--ac);background:var(--acs)':'var(--line)')+';border-radius:8px;min-height:44px;'
+      +'text-transform:none;letter-spacing:0;font-size:13px;font-weight:'+(sin?'600':'500')+';color:'
+      +(sin?'var(--ac2)':'var(--ink)')+';margin:0;cursor:pointer">'
+      +'<input type="checkbox" '+(sin?'checked ':'')+'style="width:17px;height:17px;min-height:0;padding:0;margin:0;accent-color:var(--ac)" '
+      +'onchange="state.values[\'sin_cita\']=this.checked;if(this.checked)state.values[\'fecha_cita\']=\'\';refresca()">'
+      +'Aún sin cita</label></div>';
+    h+='</div>';
+    if(sin)h+='<div class="note" style="margin-top:10px;display:flex;gap:9px;align-items:flex-start">'
+      +ico('info','var(--mut)',16)+'<div>Sin cita, la tarjeta irá a tu lista cuando llegue el material, para que llames al cliente.</div></div>';
+    if(state.tocado&&esRequerido(f)&&!sin&&!state.values['fecha_cita'])
+      h+='<div class="err">Pon una fecha o marca «Aún sin cita».</div>';
+  }
+  return h+'</div>';
+}
+function mInput(id,ph,w){
+  return '<input class="mono" style="width:'+w+'px" aria-label="'+id+'" placeholder="'+ph+'" value="'
+    +esc(state.values[id]||'')+'" oninput="state.values[\''+id+'\']=this.value">';
+}
+function mSelect(id,opts,w){
+  var h='<select class="mono" style="width:'+w+'px" aria-label="'+id+'" onchange="state.values[\''+id+'\']=this.value">';
+  h+='<option value="">—</option>';
+  opts.forEach(function(o){ h+='<option'+(state.values[id]===o?' selected':'')+'>'+o+'</option>'; });
+  return h+'</select>';
+}
+function esRequerido(f){
+  if(!f.required)return false;
+  if(f.reqNo){ var p=f.reqNo.split('='); if((state.values[p[0]]||'')===p[1])return false; }
+  return true;
+}
+function esVacio(f){
+  if(f.type==='medida')return !(state.values.ancho&&state.values.perfil&&state.values.llanta);
+  if(f.type==='cita')return !state.values['fecha_cita']&&!state.values['sin_cita'];
+  return !state.values[f.id];
+}
+function vinMsg(v){
+  var n=String(v||'').toUpperCase().replace(/[\s\-]/g,'');
+  if(!n)return '';
+  if(n.length===17)return '<div class="help" style="color:var(--ok);font-weight:500">17 caracteres · correcto</div>';
+  return '<div class="help" style="color:var(--wn);font-weight:500">Lleva '+n.length+' de 17 caracteres</div>';
+}
+function pintaVin(){ var e=$('vinmsg'); if(e)e.innerHTML=vinMsg(state.values['vin']); }
+/* quita el aviso de «faltan…» en cuanto el usuario escribe, sin repintar el formulario */
+function borraMsg(){ var e=$('msgbox'); if(e){ e.parentNode.removeChild(e); state.msg=null; } }
+function ponSeg(id,val){ state.values[id]=val; state.msg=null; render(); }
+function ponMedida(m){
+  var x=String(m).match(/(\d+)\s*\/\s*(\d+)\s*R\s*(\d+)\s*(\d+)?\s*([A-Z]{1,2})?/i);
+  if(x){ state.values.ancho=x[1];state.values.perfil=x[2];state.values.llanta=x[3];
+         state.values.carga=x[4]||'';state.values.velocidad=(x[5]||'').toUpperCase(); }
+  render();
+}
+function setPriority(p){ state.priority=p; render(); }
+function refresca(){ state.msg=null; render(); }
+
+function renderForm(){
+  var tp=state.tpl;
+  var h='<div class="wrap">';
+  h+='<div class="head">'
+    +'<button class="ico-btn" aria-label="Volver" onclick="state.step=\'pick\';render()">'+ico('atras','var(--ink2)',17)+'</button>'
+    +'<div class="badge">'+ico(tp.icon,'var(--ac)',20)+'</div>'
+    +'<div style="flex:1"><div class="ttl">'+esc(tp.name)+'</div>'
+    +'<div class="mini">Paso 2 de 3'+(state.userName?' · lo pide '+esc(capitaliza(state.userName)):'')+'</div></div></div>';
+  h+='<div class="body">';
+  tp.secciones.forEach(function(s){
+    if(s.si){ var p=s.si.split('='); if((state.values[p[0]]||'')!==p[1])return; }
+    var campos=s.campos.filter(visible);
+    if(!campos.length)return;
+    if(s.t)h+='<div class="sec"><b>'+esc(s.t)+'</b><i></i></div>';
+    h+='<div class="grid"'+(s.t?'':' style="margin-top:18px"')+'>';
+    campos.forEach(function(f){ h+=campoHTML(f); });
+    h+='</div>';
   });
-  html+='</div></div>';
-
-  if(state.msg){html+='<div class="alert alert-'+(state.msg.type||'info')+'">'+state.msg.text+'</div>';}
-
-  html+='<div class="footer">';
-  html+='<button class="btn btn-ghost" onclick="t.closeModal()">Cancelar</button>';
-  html+='<button class="btn btn-primary" onclick="submitForm()" '+(state.saving?'disabled':'')+'>'+
-    (state.saving?'⏳ Creando...':'Elegir lista y crear tarjeta')+'</button>';
-  html+='</div></div>';
-
-  app().innerHTML=html;
-  t.sizeTo('#app');
+  if(state.msg)h+='<div id="msgbox" class="note '+(state.msg.type==='warn'?'wn':'ac')+'" style="margin-top:16px">'+esc(state.msg.text)+'</div>';
+  h+='</div>';
+  h+='<div class="foot"><div class="hint">'
+    +(tp.id==='presupuesto'?'Te avisamos aquí mismo cuando esté el PDF'
+      :'Irá a <b style="color:var(--ink)">'+esc(state.listName||tp.lista)+'</b> · <a class="lnk" onclick="state.step=\'list-pick\';render()">cambiar</a>')
+    +'</div>'
+    +'<button class="btn btn-g" onclick="t.closeModal()">Cancelar</button>'
+    +'<button class="btn btn-p" onclick="submitForm()"'+(state.saving?' disabled':'')+'>'
+    +(state.saving?'Creando…':(tp.id==='presupuesto'?'Pedir presupuesto':'Crear tarjeta'))+'</button></div></div>';
+  pinta(h);
 }
 
-function selectChanged(id,sub,val){
-  state.values[id]=val;
-  if(id==='marca'){
-    state.marca=val;
-    // Reset modelo al primer valor de la nueva marca
-    var newModelos=MODELOS[val]||['Otro modelo'];
-    state.values['modelo']=newModelos[0];
-    renderForm();
-  }
-}
-function setPriority(p){state.priority=p;renderForm();}
-
-function toggleSinCita(checked){
-  state.values['sin_cita']=checked;
-  if(checked){
-    state.values['fecha_cita']='';
-  }
-  renderForm();
-}
-
-function validarMatricula(m){
-  if(!m)return false;
-  m=m.toUpperCase().trim();
-  var actual=/^[0-9]{4}[BCDFGHJKLMNPRSTUVWXYZ]{3}$/.test(m);
-  var antiguo=/^[A-Z]{1,2}[0-9]{4}[A-Z]{1,2}$/.test(m);
-  var especial=/^[A-Z]{1,3}[0-9]{4,6}$/.test(m);
-  return actual||antiguo||especial;
-}
-
+/* ══════════ VALIDAR Y CREAR ══════════ */
 function submitForm(){
-  var tpl=state.tpl;
-  // Excluir fecha_cita del check genérico (tiene su propia validación abajo)
-  var missing=tpl.fields.filter(function(f){
-    return f.required && f.type!=='fecha_cita' && !state.values[f.id];
+  var tp=state.tpl;
+  state.tocado=true;
+  var faltan=[];
+  tp.secciones.forEach(function(s){
+    if(s.si){ var p=s.si.split('='); if((state.values[p[0]]||'')!==p[1])return; }
+    s.campos.filter(visible).forEach(function(f){ if(esRequerido(f)&&esVacio(f))faltan.push(f.label||f.id); });
   });
-  if(missing.length){
-    state.msg={type:'warn',text:'⚠️ Completa los campos obligatorios: '+missing.map(function(f){return f.label;}).join(', ')};
+  if(faltan.length){
+    state.msg={type:'warn',text:'Faltan: '+faltan.join(', ')+'.'};
     return render();
   }
   if(state.values['matricula']&&!validarMatricula(state.values['matricula'])){
-    state.msg={type:'warn',text:'⚠️ Matrícula no válida. Formatos: 1234BCD (actual) o AB1234CD (antiguo)'};
+    state.msg={type:'warn',text:'La matrícula parece incompleta. Revísala.'};
     return render();
   }
-  // Validar fecha de cita obligatoria
-  var hasFechaCita=tpl.fields.some(function(f){return f.type==='fecha_cita';});
-  if(hasFechaCita&&!state.values['fecha_cita']&&!state.values['sin_cita']){
-    state.msg={type:'warn',text:'⚠️ Obligatorio: selecciona una fecha de cita o marca "Vehículo sin cita asignada"'};
-    return render();
-  }
-  // ── Comprobar duplicados antes de continuar ──────────────────────────
-  var API_KEY='a94def1efe06824418ef1ebc9bd12b4c';
-  var API_TOKEN='ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
-  state.apiKey=API_KEY;
-  state.apiToken=API_TOKEN;
+  state.msg=null;
 
-  var matriculaBuscar=normMatricula(state.values['matricula']||'');
-  // v1.3: también por bastidor y por OT
-  var vinBuscar=(state.values['vin']||'').toUpperCase().replace(/[\s\-]/g,'');
-  var otBuscar=(state.values['ot']||'').replace(/\D/g,'');
-  if((matriculaBuscar||vinBuscar.length===17||otBuscar.length>=4) && !state.skipDupCheck){
-    state.saving=true;
-    state.msg={type:'info',text:'Verificando duplicados...'};
-    render();
-    Promise.all([
-      fetch('https://api.trello.com/1/boards/QNEswrD1/cards?key='+API_KEY+'&token='+API_TOKEN+'&filter=open&fields=id,name,idList,desc&checklists=all').then(function(r){return r.json();}),
-      fetch('https://api.trello.com/1/boards/QNEswrD1/lists?key='+API_KEY+'&token='+API_TOKEN+'&fields=id,name').then(function(r){return r.json();}).catch(function(){return [];})
-    ])
-    .then(function(res){
-      var cards=res[0];
-      state.listNames={};
-      (res[1]||[]).forEach(function(l){state.listNames[l.id]=l.name;});
-      // Buscar tarjetas con matrícula coincidente (con o sin E)
-      var matches=cards.filter(function(c){
-        var cn=normMatricula(c.name);
-        // extraer matrícula del título: [TIPO] - MATRICULA - ...
-        var parts=c.name.split(' - ');
-        var cardMat=parts.length>1?normMatricula(parts[1]):'';
-        var descN=(c.desc||'').toUpperCase().replace(/[\s\-\*]/g,'');
-        return (matriculaBuscar && (cardMat===matriculaBuscar || cn.indexOf(matriculaBuscar)!==-1))
-          || (vinBuscar.length===17 && descN.indexOf(vinBuscar)!==-1)
-          || (otBuscar.length>=4 && (c.name+' '+(c.desc||'')).replace(/\D+/g,' ').split(' ').indexOf(otBuscar)!==-1);
+  var mat=normMatricula(state.values['matricula']||'');
+  var vin=String(state.values['vin']||'').toUpperCase().replace(/[\s\-]/g,'');
+  var ot=String(state.values['ot']||'').replace(/\D/g,'');
+  if((mat||vin.length===17||ot.length>=4)&&!state.skipDupCheck){
+    state.saving=true; render();
+    fetch('https://api.trello.com/1/boards/'+BOARD_ID+'/cards?key='+API_KEY+'&token='+API_TOKEN
+          +'&filter=open&fields=id,name,idList,desc&checklists=all')
+    .then(function(r){return r.json();})
+    .then(function(cards){
+      var m=(cards||[]).filter(function(c){
+        var partes=String(c.name).split(' - ');
+        var cm=partes.length>1?normMatricula(partes[1]):'';
+        var dn=String(c.desc||'').toUpperCase().replace(/[\s\-\*]/g,'');
+        if(mat&&(cm===mat||normMatricula(c.name).indexOf(mat)!==-1))return true;
+        if(vin.length===17&&dn.indexOf(vin)!==-1)return true;
+        if(ot.length>=4&&new RegExp('OT[^0-9]{0,4}'+ot+'(?![0-9])').test(String(c.name+' '+(c.desc||'')).toUpperCase()))return true;
+        return false;
       });
       state.saving=false;
-      if(matches.length>0){
-        state.duplicates=matches;
-        state.step='dup-check';
-        render();
-      } else {
-        // Sin duplicados — continuar normal
-        proceedToListPick();
-      }
+      if(m.length){ state.duplicates=m; state.step='dup-check'; render(); }
+      else crearTarjeta();
     })
-    .catch(function(){
-      // Error en la búsqueda — continuar sin bloquear
-      state.saving=false;
-      proceedToListPick();
-    });
+    .catch(function(){ state.saving=false; crearTarjeta(); });
     return;
   }
-
-  proceedToListPick();
+  crearTarjeta();
 }
 
-function proceedToListPick(){
-  var API_KEY='a94def1efe06824418ef1ebc9bd12b4c';
-  var API_TOKEN='ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
-  state.saving=true;
-  render();
+function titulo(){
+  var tp=state.tpl,v=state.values;
+  var p=[];
+  p.push(tp.id==='presupuesto'?'[PRESUPUESTO]':tp.id==='airbag'?'[AIRBAG]':
+         tp.id==='neumaticos'?'[NEUMATICOS]':'[PEDIDO]');
+  if(v.matricula)p.push(String(v.matricula).toUpperCase());
+  if(v.ot)p.push('OT '+v.ot);
+  var med=medidaTexto(v);
+  if(med)p.push(med);
+  if(v.marca)p.push(String(v.marca).toUpperCase()+(v.modelo?' '+String(v.modelo).toUpperCase():''));
+  if(v.cliente)p.push(String(v.cliente).toUpperCase());
+  if(p.length===1){
+    var txt=String(v.que_necesita||v.notas||v.referencia||'').replace(/\s+/g,' ').trim();
+    if(txt)p.push(txt.length>50?txt.slice(0,50).toUpperCase()+'…':txt.toUpperCase());
+  }
+  return p.join(' - ');
+}
+function descripcion(){
+  var tp=state.tpl,v=state.values,L=[];
+  L.push('## '+tp.name.toUpperCase(),'');
+  if(v.marca)L.push('**'+String(v.marca).toUpperCase()+(v.modelo?' '+String(v.modelo).toUpperCase():'')+'**');
+  function add(k,val){ if(val)L.push(k+': **'+val+'**'); }
+  add('Matrícula',v.matricula); add('Cliente',v.cliente); add('Teléfono',v.telefono);
+  add('VIN/Bastidor',v.vin); add('OT',v.ot);
+  add('Referencia',v.referencia); add('Medida',medidaTexto(v));
+  add('Cantidad',v.cantidad||v.cantidad_txt); add('Tipo',v.tipo); add('Marca',v.marca_neum);
+  add('Tipo airbag',v.tipo_airbag); add('Código de campaña',v.cod_campana);
+  add('Qué necesita',v.que_necesita); add('Qué busca',v.gama);
+  if(v.para==='Material de taller')add('Para','Material de taller (sin coche)');
+  if(v.tipo_presu)add('Presupuesto de',v.tipo_presu);
+  add('Notas',v.notas);
+  var pm=tp.prio||PRIO_PEDIDO;
+  L.push('','Prioridad: **'+pm[state.priority]+'**');
+  if(v.sin_cita)L.push('Cita: **Aún sin cita**');
+  else if(v.fecha_cita)L.push('Cita: **'+fFecha(v.fecha_cita)+'**');
+  if(state.userName)L.push('Pedido por: **'+state.userName+'**');
+  L.push('','---','*Generado con Stellantis Recambios Power-Up*');
+  return L.join('\n');
+}
 
-  fetch('https://api.trello.com/1/boards/QNEswrD1/lists?key='+API_KEY+'&token='+API_TOKEN+'&filter=open')
-  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-  .then(function(lists){
-    state.lists=lists||[];
+function crearTarjeta(){
+  if(!state.selectedList){
+    if(state.lists.length){ state.step='list-pick'; return render(); }
+    state.msg={type:'warn',text:'No se han podido leer las listas del tablero. Inténtalo otra vez.'};
+    return render();
+  }
+  state.saving=true; render();
+  var tp=state.tpl,v=state.values;
+  var payload={name:titulo(),desc:descripcion(),idList:state.selectedList,pos:'top'};
+  if(v.fecha_cita&&!v.sin_cita){ var d=citaISO(v.fecha_cita); if(d)payload.due=d; }
+  var lab=BRAND_LABELS[v.marca||''];
+  if(lab)payload.idLabels=[lab];
+
+  fetch('https://api.trello.com/1/cards?key='+encodeURIComponent(API_KEY)+'&token='+encodeURIComponent(API_TOKEN),
+    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+  .then(function(r){ if(!r.ok)throw new Error('HTTP '+r.status); return r.json(); })
+  .then(function(card){
+    guardarReciente(medidaTexto(v));
+    if(WEBAPP_URL&&WEBAPP_URL.indexOf('PEGA_')===-1){
+      fetch(WEBAPP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({template:tp.id,fields:v,priority:state.priority,pedidoPor:state.userName,
+          trelloCardId:card.id,sinCita:!!v.sin_cita,fechaCita:v.fecha_cita||'',listName:state.listName,
+          medida:medidaTexto(v)})}).catch(function(){});
+    }
+    fetch('https://api.trello.com/1/cards/'+card.id+'/actions/comments?key='+API_KEY+'&token='+API_TOKEN,
+      {method:'POST',headers:{'Content-Type':'application/json'},
+       body:JSON.stringify({text:'Solicitud creada por: **'+(state.userName||'—')+'**'
+         +'\n\n_Registrada con el Power-Up Stellantis Recambios._'})}).catch(function(){});
+    return t.set('card','shared','pedido-data',
+      {template:tp.id,fields:v,priority:state.priority,medida:medidaTexto(v),
+       pedidoPor:state.userName,createdAt:Date.now()},{cardId:card.id})
+      .catch(function(){}).then(function(){return card;});
+  })
+  .then(renderHecho)
+  .catch(function(e){
     state.saving=false;
-    if(!state.lists.length){state.msg={type:'warn',text:'⚠️ No se encontraron listas.'};render();return;}
-    var defaultList=state.lists.find(function(l){return l.id==='68a4531b010b18274c39d3a8';});
-    state.selectedList=defaultList?defaultList.id:state.lists[0].id;
-    state.step='list-pick';
-    render();
-  }).catch(function(err){
-    state.saving=false;
-    state.msg={type:'warn',text:'❌ Error conectando con Trello: '+err.message};
-    render();
+    state.msg={type:'warn',text:'No se ha podido crear la tarjeta ('+e.message+'). Inténtalo otra vez.'};
+    state.step='form'; render();
   });
 }
 
-// ── PANTALLA DE DUPLICADOS ───────────────────────────────────────────────
+/* ══════════ DUPLICADO ══════════ */
 function renderDupCheck(){
-  var mat=state.values['matricula']||'';
-  var dups=state.duplicates||[];
-
-  var html='<div class="scroll">';
-  html+='<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:16px 18px;background:#c62828;border-radius:10px;color:white">';
-  html+='<div style="font-size:34px;flex-shrink:0">⚠️</div>';
-  html+='<div><div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:19px">ESTE COCHE YA TIENE '+(dups.length>1?dups.length+' TARJETAS ABIERTAS':'UNA TARJETA ABIERTA')+'</div>';
-  html+='<div style="font-size:13px;opacity:.95">Matrícula <b>'+(mat||'—')+'</b>. Mira si lo que vas a pedir ya está pedido antes de crear otra.</div></div>';
-  html+='</div>';
-
-  dups.forEach(function(card){
-    // Extraer datos del título: [TIPO] - MATRICULA - MARCA MODELO - CLIENTE - PEDIDO POR X
-    var parts=card.name.split(' - ');
-    var tipo=parts[0]||'—';
-    var cliente=parts[3]||'—';
-    var pedidoPor=parts[4]?parts[4].replace('PEDIDO POR ',''):'—';
-    // Extraer primera línea de la descripción (estado)
-    var descLines=(card.desc||'').split('\n').filter(function(l){return l.trim()&&!l.startsWith('##')&&!l.startsWith('---')&&!l.startsWith('*');});
-    var descPreview=descLines.slice(0,4).join('\n');
-
-    html+='<div style="background:white;border:2px solid #ef9a9a;border-radius:10px;padding:14px;margin-bottom:10px">';
-    html+='<div style="font-weight:800;font-size:13px;color:#0c1a35;margin-bottom:4px">'+card.name+'</div>';
-    var ln=(state.listNames||{})[card.idList];
-    if(ln){ html+='<div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">Lista: '+ln+'</div>'; }
-    // v1.3: piezas que lleva Recambios (checklist «Piezas (Recambios)»)
+  var v=state.values;
+  var h='<div class="wrap">';
+  h+='<div style="background:var(--wns);border-bottom:1px solid var(--wnb);padding:20px 24px;display:flex;gap:14px;align-items:flex-start">'
+    +'<div style="width:34px;height:34px;border-radius:8px;background:var(--wn);display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+    +ico('aviso','#fff',19)+'</div><div>'
+    +'<div style="font-size:16px;font-weight:700;letter-spacing:-.01em;margin-bottom:3px">Este coche ya tiene '
+    +(state.duplicates.length>1?state.duplicates.length+' tarjetas abiertas':'una tarjeta abierta')+'</div>'
+    +'<div style="font-size:13px;color:#6A4A1E;line-height:1.5">Mira si lo que vas a pedir ya está pedido antes de crear otra.</div>'
+    +'</div></div>';
+  h+='<div class="body" style="padding-top:18px">';
+  if(v.matricula)h+='<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px">'
+    +'<div style="font-size:11px;font-weight:700;letter-spacing:.11em;color:var(--soft);text-transform:uppercase">Matrícula</div>'
+    +'<div class="mono" style="font-size:15px">'+esc(v.matricula)+'</div></div>';
+  state.duplicates.slice(0,4).forEach(function(c){
     var items=[];
-    (card.checklists||[]).forEach(function(cl){ if(/RECAMBIOS/i.test(cl.name)) (cl.checkItems||[]).forEach(function(i){items.push(i);}); });
+    (c.checklists||[]).forEach(function(cl){
+      if(/RECAMBIOS/i.test(cl.name))(cl.checkItems||[]).forEach(function(i){items.push(i);});
+    });
+    h+='<div class="card" style="margin-bottom:10px"><div style="padding:14px 15px;border-bottom:1px solid var(--line2)">';
+    var ln=state.listNames[c.idList];
+    if(ln)h+='<div class="mini" style="margin-bottom:6px">en <b style="color:var(--ink)">'+esc(ln)+'</b></div>';
+    h+='<div style="font-size:14px;font-weight:600;line-height:1.4">'+esc(c.name)+'</div></div>';
     if(items.length){
       var ok=items.filter(function(i){return i.state==='complete';}).length;
-      html+='<div style="font-size:11px;font-weight:700;color:#7c3aed;margin-bottom:4px">Piezas en Recambios: '+ok+' de '+items.length+' recibidas</div>';
-      html+='<div style="font-size:11px;color:#334155;margin-bottom:8px;line-height:1.6">'+items.map(function(i){return (i.state==='complete'?'✅ ':'⏳ ')+i.name;}).join('<br>')+'</div>';
+      h+='<div style="padding:13px 15px;background:var(--bg3)">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:9px">'
+        +'<div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--soft);text-transform:uppercase">Piezas en Recambios</div>'
+        +'<div style="font-size:12px;font-weight:600">'+ok+' de '+items.length+' recibidas</div></div>';
+      items.slice(0,6).forEach(function(i){
+        var c2=i.state==='complete'?'var(--ok)':'var(--wn)';
+        h+='<div style="display:flex;align-items:center;gap:9px;margin-bottom:6px;font-size:12.5px">'
+          +ico(i.state==='complete'?'check':'reloj',c2,15)+'<div>'+esc(i.name)+'</div></div>';
+      });
+      h+='</div>';
     }
-    if(descPreview){
-      html+='<div style="font-size:11px;color:#475569;background:#f8fafc;border-radius:6px;padding:8px 10px;margin-bottom:10px;white-space:pre-line;line-height:1.6">'+descPreview+'</div>';
-    }
-    html+='<a href="https://trello.com/c/'+card.id+'" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#1d4ed8;text-decoration:none">Ver tarjeta en Trello →</a>';
-    html+='</div>';
+    h+='<div style="padding:11px 15px;border-top:1px solid var(--line2)">'
+      +'<a href="https://trello.com/c/'+esc(c.id)+'" target="_blank" rel="noopener" class="lnk" '
+      +'style="font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px">Abrir la tarjeta '
+      +ico('fuera','var(--ac)',15)+'</a></div></div>';
   });
-
-  html+='<div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:#1e3a8a">';
-  html+='¿Es una pieza DIFERENTE para el mismo coche? Entonces sí, crea la tarjeta. Si es lo mismo, no la crees: ya está pedido.';
-  html+='</div>';
-
-  html+='<div class="footer">';
-  html+='<button class="btn btn-ghost" onclick="state.step=\'form\';state.msg=null;render()">← Volver</button>';
-  html+='<button class="btn btn-primary" onclick="state.skipDupCheck=true;state.step=\'form\';submitForm()" style="background:#d97706">Crear de todas formas</button>';
-  html+='</div></div>';
-
-  app().innerHTML=html;
-  t.sizeTo('#app');
+  h+='<div class="note" style="margin-top:4px">¿Es una pieza <b>distinta</b> para el mismo coche? Entonces crea la tarjeta. '
+    +'Si es lo mismo, no hace falta: ya está pedido.</div>';
+  h+='</div>';
+  h+='<div class="foot"><div class="hint"></div>'
+    +'<button class="btn btn-g" onclick="state.step=\'form\';state.msg=null;render()">Volver</button>'
+    +'<button class="btn btn-g" style="color:var(--ink);border-color:var(--fld)" '
+    +'onclick="state.skipDupCheck=true;crearTarjeta()">Crear igualmente</button></div></div>';
+  pinta(h);
 }
 
+/* ══════════ ELEGIR LISTA (solo si lo pide) ══════════ */
 function renderListPick(){
-  var tpl=state.tpl;
-  var html='<div class="scroll">';
-  html+='<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:15px;margin-bottom:4px">Elige la lista de destino</div>';
-  html+='<div style="font-size:12px;color:#64748b;margin-bottom:14px">¿En qué lista quieres crear la tarjeta de '+tpl.ico+' '+tpl.name+'?</div>';
-  html+='<div style="background:white;border:1.5px solid var(--border);border-radius:10px;padding:6px;margin-bottom:14px">';
+  var h='<div class="wrap"><div class="body" style="padding-top:20px">';
+  h+='<h1 style="font-size:18px">Elegir lista</h1><div class="sub" style="margin-bottom:14px">¿Dónde quieres que caiga la tarjeta?</div>';
+  h+='<div class="card" style="padding:6px">';
   state.lists.forEach(function(l){
-    html+='<div class="list-item'+(state.selectedList===l.id?' sel':'')+'" onclick="state.selectedList=\''+l.id+'\';render()">';
-    html+='<span style="font-size:14px">'+(state.selectedList===l.id?'●':'○')+'</span> '+l.name;
-    html+='</div>';
+    h+='<div class="lista'+(state.selectedList===l.id?' sel':'')+'" onclick="state.selectedList=\''+esc(l.id)
+      +'\';state.listName=\''+esc(l.name).replace(/'/g,"\\'")+'\';state.step=\'form\';render()">'
+      +(state.selectedList===l.id?ico('check','var(--ac)',16):'<span style="width:16px"></span>')+esc(l.name)+'</div>';
   });
-  html+='</div>';
-  if(state.msg){html+='<div class="alert alert-'+(state.msg.type||'info')+'">'+state.msg.text+'</div>';}
-  html+='<div class="footer">';
-  html+='<button class="btn btn-ghost" onclick="state.step=\'form\';state.msg=null;render()">← Volver</button>';
-  html+='<button class="btn btn-primary" onclick="createCard()" '+(state.saving?'disabled':'')+'>'+
-    (state.saving?'Creando...':'Crear tarjeta')+'</button>';
-  html+='</div></div>';
-  app().innerHTML=html;
-  t.sizeTo('#app');
+  h+='</div></div><div class="foot"><div class="hint"></div>'
+    +'<button class="btn btn-g" onclick="state.step=\'form\';render()">Volver</button></div></div>';
+  pinta(h);
 }
 
-function createCard(){
-  if(!state.selectedList){state.msg={type:'warn',text:'Selecciona una lista'};return render();}
-  state.saving=true;render();
-
-  var tpl=state.tpl;
-  var v=state.values;
-  var API_KEY='a94def1efe06824418ef1ebc9bd12b4c';
-  var API_TOKEN='ATTAd63dce7afe7a2caaaab52dd8241ee74a60ce42b48610f1d359b3e83b3aa68f1eA5746F5A';
-
-  // Usar el nombre seleccionado al inicio (no depende del token)
-  var pedidoPor=state.userName||'DESCONOCIDO';
-  Promise.resolve().then(function(){
-
-    // Construir título en MAYÚSCULAS con icono de marca
-    var titleParts=[];
-    var marcaModelo=(v.marca||'').toUpperCase()+(v.modelo?' - '+v.modelo.toUpperCase():'');
-    if(tpl.id==='airbag'){
-      titleParts.push('[AIRBAG]');
-      titleParts.push(v.matricula||'?');
-      titleParts.push(marcaModelo);
-      titleParts.push((v.cliente||'?').toUpperCase());
-    }
-    if(tpl.id==='neumaticos'){
-      var medidaCompleta=(v.ancho||'?')+'/'+(v.perfil||'?')+'R'+(v.llanta||'?').replace('"','');
-      if(v.ind_carga&&v.cod_vel) medidaCompleta+=' '+(v.ind_carga.split(' ')[0])+(v.cod_vel.split(' ')[0]);
-      titleParts.push('[NEUMATICOS]');
-      titleParts.push(v.matricula||'?');
-      titleParts.push(medidaCompleta);
-      // Extraer solo el número de la cantidad: "4 neumáticos" → "4 uds."
-      var cantNum=(v.cantidad||'').replace(/[^0-9]/g,'');
-      if(cantNum) titleParts.push(cantNum+' uds.');
-      titleParts.push(marcaModelo);
-      titleParts.push((v.cliente||'?').toUpperCase());
-    }
-    if(tpl.id==='general'){
-      titleParts.push('[PEDIDO]');
-      titleParts.push(v.matricula||'?');
-      titleParts.push(marcaModelo);
-      titleParts.push((v.cliente||'?').toUpperCase());
-    }
-    titleParts.push('PEDIDO POR '+pedidoPor);
-    var title=titleParts.join(' - ');
-
-    // Descripción también en mayúsculas donde aplique
-    var desc=buildDesc(tpl,v,pedidoPor);
-
-    // Calcular fecha de vencimiento para Trello (due date)
-    var dueDate=null;
-    if(state.values['fecha_cita']&&!state.values['sin_cita']){
-      // Trello necesita ISO 8601 con hora — ponemos las 09:00 AM
-      dueDate=state.values['fecha_cita']+'T09:00:00.000Z';
-    }
-
-    var payload={
-      name: title,
-      desc: desc,
-      idList: state.selectedList,
-      pos: 'top'
-    };
-    if(dueDate) payload.due=dueDate;
-
-    // Añadir etiqueta de color según la marca seleccionada
-    var labelId=BRAND_LABELS[v.marca||''];
-    if(labelId) payload.idLabels=[labelId];
-
-    return fetch('https://api.trello.com/1/cards?key='+encodeURIComponent(API_KEY)+'&token='+encodeURIComponent(API_TOKEN),{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(payload)
-  })
-  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-  .then(function(card){
-    // Enviar a Google Sheets en tiempo real
-    if(WEBAPP_URL && WEBAPP_URL.indexOf('PEGA_')===-1){
-      var sheetPayload={
-        template:     tpl.id,
-        fields:       v,
-        priority:     state.priority,
-        pedidoPor:    pedidoPor,
-        trelloCardId: card.id,
-        sinCita:      state.values['sin_cita']||false,
-        fechaCita:    state.values['fecha_cita']||'',
-        listName:     (state.lists.find(function(l){return l.id===state.selectedList;})||{name:''}).name
-      };
-      fetch(WEBAPP_URL,{
-        method:'POST',
-        mode:'no-cors',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(sheetPayload)
-      }).catch(function(e){console.log('Sheets error:',e);});
-    }
-    // Guardar datos en la tarjeta Trello
-    var cardData={
-      template: tpl.id,
-      fields: v,
-      priority: state.priority,
-      createdAt: Date.now()
-    };
-    // Añadir comentario con el nombre real del solicitante
-    var comentario='Solicitud creada por: *'+pedidoPor+'*'
-      +'\n\n_Este pedido fue registrado a través del Power-Up Stellantis Recambios._';
-    fetch('https://api.trello.com/1/cards/'+card.id+'/actions/comments'
-      +'?key='+API_KEY+'&token='+API_TOKEN,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:comentario})
-    }).catch(function(){});
-
-    return t.set('card','shared','pedido-data',cardData,{cardId:card.id})
-      .catch(function(){})
-      .then(function(){return card;});
-  })
-  .then(function(card){
-    state.saving=false;
-    state.step='done';
-    var listName=(state.lists.find(function(l){return l.id===state.selectedList;})||{name:'—'}).name;
-    var v=state.values;
-    var prioStyles={
-      'normal':     'background:#d1fae5;color:#065f46;border:1.5px solid #6ee7b7',
-      'urgente':    'background:#fef3c7;color:#92400e;border:1.5px solid #fbbf24',
-      'muy-urgente':'background:#fee2e2;color:#991b1b;border:1.5px solid #fca5a5'
-    };
-    var prioLabels={'normal':'Normal','urgente':'Urgente','muy-urgente':'Muy urgente'};
-    app().innerHTML='<div class="scroll">'
-      +'<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:#d1fae5;border:2px solid #6ee7b7;border-radius:12px;margin-bottom:18px">'
-      +'<div style="font-size:28px">✅</div>'
-      +'<div><div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:16px;color:#065f46">Tarjeta creada</div>'
-      +'<div style="font-size:12px;color:#059669">Añadida a <b>'+listName+'</b></div></div>'
-      +'</div>'
-      +'<div style="background:white;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:16px">'
-      +'<div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Resumen</div>'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
-      +'<div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;margin-bottom:2px">Matrícula</div>'
-      +'<div style="font-family:monospace;font-weight:800;font-size:15px;color:#0c1a35;letter-spacing:0.06em">'+(v.matricula||'—')+'</div></div>'
-      +'<div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;margin-bottom:2px">Cliente</div>'
-      +'<div style="font-weight:700;font-size:13px;color:#0c1a35">'+(v.cliente||'—')+'</div></div>'
-      +'<div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;margin-bottom:2px">Vehículo</div>'
-      +'<div style="font-size:12px;font-weight:600;color:#0f172a">'+(v.marca||'—')+(v.modelo?' · '+v.modelo:'')+'</div></div>'
-      +'<div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;margin-bottom:2px">Tipo</div>'
-      +'<div style="font-size:12px;font-weight:600;color:#0f172a">'+tpl.name+'</div></div>'
-      +'</div>'
-      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
-      +'<span style="padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;'+(prioStyles[state.priority]||prioStyles.normal)+'">'+(prioLabels[state.priority]||'Normal')+'</span>'
-      +(v.fecha_cita?'<span style="padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;background:#dbeafe;color:#1e3a8a;border:1.5px solid #93c5fd">📅 '+v.fecha_cita+'</span>':'')
-      +(state.values.sin_cita?'<span style="padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;background:#f1f5f9;color:#475569;border:1.5px solid #94a3b8">Sin cita</span>':'')
-      +'</div>'
-      +'</div>'
-      +'<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">'
-      +'<button class="btn btn-ghost" onclick="state.step=\'who\';state.values={};state.msg=null;state.skipDupCheck=false;render()">Nueva solicitud</button>'
-      +'<button class="btn btn-primary" onclick="t.closeModal()">Cerrar</button>'
-      +'</div></div>';
-    t.sizeTo('#app');
-  })
-  .catch(function(err){
-    state.saving=false;
-    state.msg={type:'warn',text:'❌ Error al crear la tarjeta: '+err.message};
-    state.step='list-pick';
-    render();
-  });
-  }).catch(function(err){
-    state.saving=false;
-    state.msg={type:'warn',text:'❌ Error al crear la tarjeta: '+err.message};
-    render();
-  });
+/* ══════════ HECHO ══════════ */
+function renderHecho(){
+  state.saving=false; state.step='hecho';
+  var v=state.values,tp=state.tpl;
+  var pm=tp.prio||PRIO_PEDIDO;
+  var h='<div class="wrap">'+pasos(3);
+  h+='<div class="body" style="padding-top:26px;text-align:center">'
+    +'<div style="width:54px;height:54px;border-radius:99px;background:var(--oks);display:inline-flex;'
+    +'align-items:center;justify-content:center;margin-bottom:14px">'+ico('check','var(--ok)',27)+'</div>'
+    +'<h1>'+(tp.id==='presupuesto'?'Presupuesto pedido':'Tarjeta creada')+'</h1>'
+    +'<div class="sub">'+(tp.id==='presupuesto'
+      ?'Te avisaremos en la tarjeta cuando esté el PDF.'
+      :'Está en <b style="color:var(--ink)">'+esc(state.listName)+'</b>. Recambios ya la ve.')+'</div></div>';
+  h+='<div class="body" style="padding-top:20px"><div class="card" style="padding:16px">';
+  function fila(k,val){ if(val)h+='<div class="dr"><div class="k">'+esc(k)+'</div><div class="v">'+esc(val)+'</div></div>'; }
+  fila('Matrícula',v.matricula);
+  fila('Vehículo',(v.marca||'')+(v.modelo?' '+v.modelo:''));
+  fila('Medida',medidaTexto(v));
+  fila('Cantidad',v.cantidad||v.cantidad_txt);
+  fila('Referencia',v.referencia);
+  fila('Cliente',v.cliente);
+  h+='</div>';
+  h+='<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:14px">'
+    +'<span class="chip '+(state.priority==='normal'?'ok':(state.priority==='urgente'?'wn':''))+'"'
+    +(state.priority==='muy-urgente'?' style="background:#FBEAEA;border-color:#EFC9C9;color:var(--dg)"':'')+'>'
+    +esc(pm[state.priority])+'</span>';
+  if(v.fecha_cita)h+='<span class="chip ac">Cita '+esc(fFecha(v.fecha_cita))+'</span>';
+  if(v.sin_cita)h+='<span class="chip">Sin cita</span>';
+  h+='</div></div>';
+  h+='<div class="foot">'
+    +'<button class="lnk" style="flex:1;text-align:left;font-size:13.5px;display:inline-flex;align-items:center;gap:6px" '
+    +'onclick="state.step=\'pick\';state.values={};state.msg=null;state.tocado=false;state.skipDupCheck=false;render()">'
+    +ico('nuevo','var(--ac)',16)+'Otra solicitud</button>'
+    +'<button class="btn btn-p" onclick="t.closeModal()">Cerrar</button></div></div>';
+  pinta(h);
 }
 
-function buildDesc(tpl,v,pedidoPor){
-  var brandIco='';
-  var vehiculo=v.marca?(brandIco+' '+(v.marca).toUpperCase()+(v.modelo?' '+v.modelo.toUpperCase():'')):null;
-  var lines=['## '+tpl.name.toUpperCase(),''];
-  pedidoPor=pedidoPor||'';
-  var labels={
-    matricula:'🚗 Matrícula',cliente:'👤 Cliente',telefono:'📞 Teléfono',
-    marca:'🏷 Marca',modelo:'🚙 Modelo',vin:'🔑 VIN/Bastidor',ot:'🧾 OT',
-    tipo_airbag:'💥 Tipo airbag',medida:'📏 Medida',cantidad:'🔢 Cantidad',
-    tipo:'❄️ Tipo',marca_neum:'🏷 Marca',con_llanta:'🛞 Con llanta',
-    referencia:'#️⃣ Referencia',descripcion:'📝 Descripción',
-    que_necesita:'🔧 Qué necesita',proveedor:'🏪 Proveedor',solicitado_por:'👤 Solicitado por',notas:'📋 Notas'
-  };
-  if(vehiculo)lines.push('**'+vehiculo+'**');
-  tpl.fields.forEach(function(f){
-    if(f.type==='priority')return;
-    if(f.id==='marca'||f.id==='modelo')return; // ya lo mostramos arriba
-    var val=v[f.id]||(f.type==='select'?f.opts&&f.opts[0]:null);
-    if(!val)return;
-    lines.push((labels[f.id]||f.label)+': **'+val+'**');
-  });
-  var pmap={normal:'🟢 Normal',urgente:'⚠️ Urgente','muy-urgente':'🔴 MUY URGENTE'};
-  lines.push('','⚡ Prioridad: **'+(pmap[state.priority]||state.priority)+'**');
-  if(pedidoPor)lines.push('👤 Pedido por: **'+pedidoPor+'**');
-  lines.push('','---','*Generado con Stellantis Recambios Power-Up*');
-  return lines.join('\n');
-}
-
-/* ══════════════════════════════════════════════════════════════
-   MODO: DETALLE DE TARJETA
-══════════════════════════════════════════════════════════════ */
+/* ══════════ DETALLE DE TARJETA ══════════ */
 function renderCardDetail(){
-  t.get('card','shared','pedido-data').then(function(data){
-    if(!data){
-      app().innerHTML='<div class="scroll"><div class="alert alert-warn">Esta tarjeta no tiene datos de plantilla almacenados. Solo las tarjetas creadas con el Power-Up tienen información estructurada.</div>'
-        +'<div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn btn-ghost" onclick="t.closeModal()">Cerrar</button></div></div>';
-      t.sizeTo('#app');return;
+  t.get('card','shared','pedido-data').then(function(d){
+    if(!d){
+      pinta('<div class="wrap"><div class="body" style="padding-top:20px">'
+        +'<div class="note">Esta tarjeta no la creó el Power-Up, así que no tiene datos guardados.</div></div>'
+        +'<div class="foot"><div class="hint"></div><button class="btn btn-g" onclick="t.closeModal()">Cerrar</button></div></div>');
+      return;
     }
-
-    var tpl=TEMPLATES[data.template]||{ico:'PED',name:'Pedido',fields:[]};
-    var v=data.fields||{};
-    var pmap={normal:'🟢 Normal',urgente:'⚠️ Urgente','muy-urgente':'🔴 MUY URGENTE'};
-
-    var html='<div class="scroll">';
-    html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">';
-    html+='<div style="font-size:24px">'+tpl.ico+'</div>';
-    html+='<div style="flex:1"><div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:15px">'+tpl.name+'</div>';
-    html+='<div style="font-size:11px;color:#64748b">'+new Date(data.createdAt).toLocaleString('es-ES')+'</div></div>';
-    html+='<div class="chip" style="'+(data.priority==='muy-urgente'?'background:#fee2e2;border-color:#fca5a5;color:#991b1b':data.priority==='urgente'?'background:#fef3c7;border-color:#fbbf24;color:#92400e':'background:#d1fae5;border-color:#6ee7b7;color:#065f46')+'">'+
-      (pmap[data.priority]||'Normal')+'</div>';
-    html+='</div>';
-
-    html+='<div style="background:white;border:1.5px solid var(--border);border-radius:10px;padding:14px">';
-    tpl.fields.forEach(function(f){
-      if(f.type==='priority')return;
-      var val=v[f.id];
-      if(!val)return;
-      html+='<div class="detail-row"><div class="detail-label">'+f.label+'</div>';
-      html+='<div class="detail-val" style="'+(f.mono||f.upper?'font-family:monospace;letter-spacing:0.05em':'')+'">'+val+'</div></div>';
-    });
-    html+='</div>';
-
-    html+='<div class="footer"><button class="btn btn-ghost" onclick="t.closeModal()">Cerrar</button></div>';
-    html+='</div>';
-    app().innerHTML=html;
-    t.sizeTo('#app');
+    var tp=TEMPLATES[d.template]||{icon:'caja',name:'Solicitud',prio:PRIO_PEDIDO};
+    var v=d.fields||{},pm=tp.prio||PRIO_PEDIDO;
+    var h='<div class="wrap"><div class="head">'
+      +'<div class="badge">'+ico(tp.icon,'var(--ac)',20)+'</div>'
+      +'<div style="flex:1"><div class="ttl">'+esc(tp.name)+'</div>'
+      +'<div class="mini">'+esc(new Date(d.createdAt).toLocaleString('es-ES'))+'</div></div>'
+      +'<span class="chip '+(d.priority==='normal'?'ok':'wn')+'">'+esc(pm[d.priority]||'Normal')+'</span></div>';
+    h+='<div class="body" style="padding-top:16px"><div class="card" style="padding:16px">';
+    function fila(k,val){ if(val)h+='<div class="dr"><div class="k">'+esc(k)+'</div><div class="v">'+esc(val)+'</div></div>'; }
+    fila('Matrícula',v.matricula); fila('Cliente',v.cliente); fila('Teléfono',v.telefono);
+    fila('Vehículo',(v.marca||'')+(v.modelo?' '+v.modelo:'')); fila('Bastidor',v.vin); fila('OT',v.ot);
+    fila('Referencia',v.referencia); fila('Medida',d.medida||''); fila('Cantidad',v.cantidad||v.cantidad_txt);
+    fila('Temporada',v.tipo); fila('Marca neumático',v.marca_neum); fila('Tipo de airbag',v.tipo_airbag);
+    fila('Código de campaña',v.cod_campana); fila('Qué necesita',v.que_necesita); fila('Qué busca',v.gama);
+    fila('Presupuesto de',v.tipo_presu); fila('Notas',v.notas); fila('Pedido por',d.pedidoPor);
+    h+='</div></div><div class="foot"><div class="hint"></div>'
+      +'<button class="btn btn-g" onclick="t.closeModal()">Cerrar</button></div></div>';
+    pinta(h);
   });
 }
 
-/* ══════════════════════════════════════════════════════════════
-   MODO: CONFIGURACIÓN
-══════════════════════════════════════════════════════════════ */
+/* ══════════ CONFIGURACIÓN ══════════ */
 function renderSettings(){
-  Promise.all([
-    t.get('member','private','apiKey'),
-    t.get('member','private','apiToken')
-  ]).then(function(res){
-    var key=res[0]||'';
-    var tok=res[1]||'';
-
-    var html='<div class="scroll">';
-    html+='<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:16px;margin-bottom:4px">⚙️ Configuración</div>';
-    html+='<div style="font-size:12px;color:#64748b;margin-bottom:16px">Tus credenciales se guardan de forma privada en tu cuenta de Trello</div>';
-
-    html+='<div class="alert alert-info">1. Ve a <a href="https://trello.com/app-key" target="_blank" style="color:#1d4ed8;font-weight:700">trello.com/app-key</a> y copia tu <b>API Key</b><br>2. En esa misma página haz clic en <b>"Generar Token"</b> y autoriza la app<br>3. Pega ambos aquí abajo y guarda</div>';
-
-    html+='<div class="settings-block">';
-    html+='<div class="field"><label>API Key de Trello</label>';
-    html+='<input id="cfg_key" type="text" value="'+key+'" placeholder="Pega tu API Key"></div>';
-    html+='<div class="field"><label>Token de Trello</label>';
-    html+='<input id="cfg_tok" type="password" value="'+tok+'" placeholder="Pega tu Token"></div>';
-    html+='</div>';
-
-    if(state.msg){html+='<div class="alert alert-'+(state.msg.type||'info')+'">'+state.msg.text+'</div>';}
-
-    html+='<div class="footer">';
-    html+='<button class="btn btn-ghost" onclick="t.closeModal()">Cerrar</button>';
-    html+='<button class="btn btn-primary" onclick="saveSettings()">💾 Guardar configuración</button>';
-    html+='</div></div>';
-
-    app().innerHTML=html;
-    t.sizeTo('#app');
+  Promise.all([t.get('member','private','apiKey'),t.get('member','private','apiToken')]).then(function(r){
+    var h='<div class="wrap"><div class="body" style="padding-top:20px">';
+    h+='<h1 style="font-size:18px">Configuración</h1>'
+      +'<div class="sub" style="margin-bottom:16px">Tus credenciales se guardan en privado, en tu cuenta de Trello.</div>';
+    h+='<div class="note ac" style="margin-bottom:16px">1. Entra en <a href="https://trello.com/app-key" target="_blank" rel="noopener" class="lnk" style="font-size:12.5px">trello.com/app-key</a> y copia tu <b>API Key</b>.<br>'
+      +'2. En esa misma página pulsa <b>Generar Token</b> y autoriza.<br>3. Pega los dos aquí y guarda.</div>';
+    h+='<div class="f" style="margin-bottom:12px"><label for="cfg_key">API Key</label>'
+      +'<input id="cfg_key" type="text" value="'+esc(r[0]||'')+'" placeholder="Pega tu API Key"></div>';
+    h+='<div class="f"><label for="cfg_tok">Token</label>'
+      +'<input id="cfg_tok" type="password" value="'+esc(r[1]||'')+'" placeholder="Pega tu Token"></div>';
+    if(state.msg)h+='<div class="note '+(state.msg.type==='warn'?'wn':'ac')+'" style="margin-top:14px">'+esc(state.msg.text)+'</div>';
+    h+='</div><div class="foot"><div class="hint"></div>'
+      +'<button class="btn btn-g" onclick="t.closeModal()">Cerrar</button>'
+      +'<button class="btn btn-p" onclick="saveSettings()">Guardar</button></div></div>';
+    pinta(h);
   });
 }
-
 function saveSettings(){
-  var key=($('cfg_key')||{}).value||'';
-  var tok=($('cfg_tok')||{}).value||'';
-  if(!key||!tok){state.msg={type:'warn',text:'⚠️ Ambos campos son obligatorios'};return renderSettings();}
-  Promise.all([
-    t.set('member','private','apiKey',key),
-    t.set('member','private','apiToken',tok)
-  ]).then(function(){
-    state.msg={type:'ok',text:'✅ Configuración guardada correctamente'};
-    renderSettings();
-  });
+  var k=($('cfg_key')||{}).value||'',tk=($('cfg_tok')||{}).value||'';
+  if(!k||!tk){ state.msg={type:'warn',text:'Hacen falta los dos.'}; return renderSettings(); }
+  Promise.all([t.set('member','private','apiKey',k),t.set('member','private','apiToken',tk)])
+    .then(function(){ state.msg={type:'ok',text:'Guardado.'}; renderSettings(); });
 }
 
-/* ── init ── */
 render();
 </script>
 </body>
